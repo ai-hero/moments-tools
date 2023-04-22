@@ -1,6 +1,6 @@
-# llm-tools
+# Starter-kit for the TribeAI LLM Hackathon
 
-Open sourcing a few common LLM Tools for the hackathon. 
+Open sourcing a few common LLM Tools for the hackathon so that you start from a baseline. Feel free to fork as needed. 
 
 ## Tools
 ### A Server.
