@@ -22,7 +22,7 @@ COHERE_API_KEY=<<YOUR_OPENAI_API_KEY>>
 ```
 make run
 ```
-- The server will come up at http://localhost:8008
+- The server will come up at http://localhost:8080
 - To change the default cafe example to something else, copy a config from the `configs` folder and rename it to `{bot_type}-{bot_id}-{bot-variant}.yaml`. Then, change the bot_type, bot_id, and bot_variant fields in the config. Change the other fields as needed.
 
 
