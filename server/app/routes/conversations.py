@@ -1,5 +1,14 @@
 import falcon
-from helpers.conversations_factory import get_bot
+import pytz
+import sys
+import logging
+from helpers.response_factory import get_bot_response
+from datetime import datetime
+
+logging.basicConfig(
+    stream=sys.stdout, level=logging.INFO, format="%(levelname)s | %(message)s"
+)
+LOG = logging.getLogger(__name__)
 
 
 class Conversation:
@@ -10,7 +19,7 @@ class Conversation:
         conversation_id: str,
     ) -> falcon.Response:
         """Handles prediction requests as GET"""
-        print("GET:" + conversation_id)
+        LOG.info("GET Conversation: %s", conversation_id)
         resp.status = falcon.HTTP_200  # pylint: disable=no-member
         resp.media = {}
         return resp
@@ -24,11 +33,22 @@ class Conversation:
     ) -> falcon.Response:
         """Handles prediction requests as POST"""
         conversation = req.get_media()
-        print("Post:" + conversation_id)
-        bot_id = conversation["bot_id"]
-        bot_type = conversation["bot_type"]
-        bot = get_bot(bot_id, bot_type)
-        conversation = bot.get_response(conversation)
+        LOG.info("POST Conversation: %s", conversation_id)
+
+        # Get bot from config
+        config_override = conversation.get("config_override", None)
+
+        # Inject context
+        tz = pytz.timezone("America/New_York")
+        current_time = datetime.now(tz)
+        context = f"The time is {current_time.strftime('%I:%M %p')}"
+        conversation["context"] = context
+        conversation["timestamp"] = f"{datetime.now().isoformat()}"
+
+        # Get response
+        conversation = get_bot_response(conversation_id, conversation, config_override)
+
+        # Response body
         resp.status = falcon.HTTP_200  # pylint: disable=no-member
         resp.media = conversation
         return resp
