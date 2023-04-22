@@ -23,7 +23,7 @@ COHERE_API_KEY=<<YOUR_OPENAI_API_KEY>>
 make run
 ```
 - The server will come up at http://localhost:8080
-- To change the default cafe example to something else, copy a config from the `configs` folder and rename it to `{bot_type}-{bot_id}-{bot-variant}.yaml`. Then, change the bot_type, bot_id, and bot_variant fields in the config. Change the other fields as needed.
+- To change the default cafe example to something else, copy a config from the `configs` folder and rename it to `{bot_type}-{bot_id}-{bot-variant}.yaml`. Then, change the `bot_type`, `bot_id`, and `bot_variant` fields in the config. Change the other fields as needed.
 
 
 ### Starting the Client
@@ -37,7 +37,7 @@ npm i
 npm run dev
 ```
 - The server will come up at http://localhost:5173
-- For fast iteration, we allow you to dynamically change the prompt client side. This allows you to change the prompt config from a constant in the `ChatUI.vue` file. As soon as you save the file (+ reload) we override the config from the server in each interaction and use the one that the client sent instead. Then, change the bot_type, bot_id, and bot_variant fields in the config. Change the other fields as needed.
+- For fast iteration, we allow you to dynamically change the prompt client side. This allows you to change the prompt config from a constant in the `ChatUI.vue` file. As soon as you save the file (+ reload) we override the config from the server in each interaction and use the one that the client sent instead. Then, change the `bot_type`, `bot_id`, and `bot_variant` fields in the config. Change the other fields as needed.
 - Don't forget to update your server side prompt and set `ALLOW_OVERRIDE` flag in  `response_factory.py` to `False` after development. 
 
 ## Production
