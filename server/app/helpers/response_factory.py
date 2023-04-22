@@ -41,8 +41,14 @@ def get_bot_response(
             "ALLOW_OVERRIDE is True. This will allow client to override agent config. Use for development only."
         )
         if config_override:
-            LOG.warning("CRITICAL: OVERRIDING CONFIG for")
             bot_config = BotConfig(config_override)
+            LOG.warning(
+                "CRITICAL: OVERRIDING CONFIG for conversation: %s - %s-%s-%s",
+                conversation_id,
+                bot_type,
+                bot_id,
+                bot_variant,
+            )
 
     get_response_func: Callable = None
     if bot_type == "chatgpt":
