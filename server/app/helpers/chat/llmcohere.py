@@ -1,4 +1,5 @@
-from langchain.llms import OpenAI
+import os
+from langchain.llms import Cohere
 import sys
 import logging
 from pprint import pformat
@@ -9,7 +10,9 @@ logging.basicConfig(
 )
 LOG = logging.getLogger(__name__)
 
-llm = OpenAI(model_name="text-davinci-003-turbo", n=2, best_of=2)
+
+COHERE_API_KEY = os.environ["COHERE_API_KEY"]
+llm = Cohere(cohere_api_key=COHERE_API_KEY)
 
 
 def get_response(bot_config: BotConfig, conversation: dict):

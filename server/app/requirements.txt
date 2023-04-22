@@ -1,16 +1,13 @@
 # Falcon related
-pytz
+pytz==2023.3
 jsonschema==4.17.3
 falcon==3.1.1
 uvicorn[standard]==0.20.0 # ASGI
 gevent==22.10.2 # WSGI
 gunicorn==20.1.0
 
-# Data related
-minio
-pymongo
-psycopg
-sqlalchemy
+# Data logging related
+httpx
 
 # Dev related
 pytest==7.2.1
@@ -18,6 +15,6 @@ pylint==2.16.1
 mypy==1.0.0
  
 # LLM related
-openai
-langchain
-cohere
+openai==0.27.4
+langchain==0.0.147
+cohere==4.2.0

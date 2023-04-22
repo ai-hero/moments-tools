@@ -4,6 +4,7 @@ from functools import cache
 import helpers.chat.chatgpt as chatgpt
 import helpers.chat.chatopenai as chatopenai
 import helpers.chat.llmopenai as llmopenai
+import helpers.chat.llmcohere as llmcohere
 from helpers.bot_config import BotConfig
 from copy import deepcopy
 from datetime import datetime
@@ -48,8 +49,10 @@ def get_bot_response(
         get_response_func = chatgpt.get_response
     elif bot_type == "chatopenai":
         get_response_func = chatopenai.get_response
-    if bot_type == "llmopenai":
+    elif bot_type == "llmopenai":
         get_response_func = llmopenai.get_response
+    elif bot_type == "llmcohere":
+        get_response_func = llmcohere.get_response
 
     if get_response_func:
         # Prepare messages including system message
