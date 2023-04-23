@@ -16,7 +16,7 @@ A simple chat UI that talks with the above server.
 - You need to create an `.env` file here, and add your API Keys (the ones you want to use):
 ```
 OPENAI_API_KEY=<<YOUR_OPENAI_API_KEY>>
-COHERE_API_KEY=<<YOUR_OPENAI_API_KEY>>
+COHERE_API_KEY=<<YOUR_COHERE_API_KEY>>
 ```
 - Start the server:
 ```
