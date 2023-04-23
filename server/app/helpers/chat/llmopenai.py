@@ -9,7 +9,7 @@ logging.basicConfig(
 )
 LOG = logging.getLogger(__name__)
 
-llm = OpenAI(model_name="text-davinci-003-turbo", n=2, best_of=2)
+llm = OpenAI(model_name="text-davinci-003", n=2, best_of=2)
 
 
 def get_response(bot_config: BotConfig, conversation: dict):

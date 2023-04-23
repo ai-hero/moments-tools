@@ -6,6 +6,7 @@ from copy import deepcopy
 from datetime import datetime
 from uuid import uuid4
 from typing import Callable
+from helpers.logging.chat import stash_chat_message
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="%(levelname)s | %(message)s"
@@ -25,12 +26,10 @@ def get_bot_response(
     conversation["request_id"] = str(uuid4())
     conversation["timestamp"] = f"{datetime.now().isoformat()}"
     conversation.pop("response_id", None)
-    conversation = deepcopy(conversation)
 
-    bot_id = conversation["bot_id"]
-    bot_type = conversation["bot_type"]
-    bot_variant = conversation["bot_variant"]
-    bot_config = load_bot_config(bot_type, bot_id, bot_variant)
+    bot_config = load_bot_config(
+        conversation["bot_type"], conversation["bot_id"], conversation["bot_variant"]
+    )
     if not ALLOW_OVERRIDE:
         # Don't do this in production - will be injecting stuff
         LOG.warning(
@@ -41,10 +40,16 @@ def get_bot_response(
             LOG.warning(
                 "CRITICAL: OVERRIDING CONFIG for conversation: %s - %s-%s-%s",
                 conversation_id,
-                bot_type,
-                bot_id,
-                bot_variant,
+                bot_config.config["type"],
+                bot_config.config["id"],
+                bot_config.config["variant"],
             )
+    conversation["bot_id"] = bot_config.config["id"]
+    conversation["bot_type"] = bot_config.config["type"]
+    conversation["bot_variant"] = bot_config.config["variant"]
+    bot_type = conversation["bot_type"]
+    stash_chat_message(conversation=conversation)
+    conversation = deepcopy(conversation)
 
     # Depending on the bot_type import the right response function.
     # Imports are dynamic, as keys might not be set in .env file for
@@ -111,6 +116,7 @@ def get_bot_response(
     conversation["message_id"] = str(uuid4())
     conversation["timestamp"] = f"{datetime.now().isoformat()}"
     conversation["response_id"] = str(uuid4())
+    stash_chat_message(conversation=conversation, bot_config=bot_config)
     return conversation
 
 
