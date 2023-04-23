@@ -5,7 +5,7 @@ Open sourcing a few common LLM Tools for the hackathon so that you start from a 
 ## Tools
 ### A Server.
 Supports LangChain chat models, a chatbot using Langchain around Cohere, and OpenAI ChatGPT API (without LangChain).
-## A Client.
+### A Client.
 A simple chat UI that talks with the above server. 
 
 ## Getting Started
