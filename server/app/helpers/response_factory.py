@@ -1,10 +1,6 @@
 import sys
 import logging
 from functools import cache
-import helpers.chat.chatgpt as chatgpt
-import helpers.chat.chatopenai as chatopenai
-import helpers.chat.llmopenai as llmopenai
-import helpers.chat.llmcohere as llmcohere
 from helpers.bot_config import BotConfig
 from copy import deepcopy
 from datetime import datetime
@@ -50,14 +46,25 @@ def get_bot_response(
                 bot_variant,
             )
 
+    # Depending on the bot_type import the right response function.
+    # Imports are dynamic, as keys might not be set in .env file for
+    # the rest.
     get_response_func: Callable = None
     if bot_type == "chatgpt":
+        import helpers.chat.chatgpt as chatgpt
+
         get_response_func = chatgpt.get_response
     elif bot_type == "chatopenai":
+        import helpers.chat.chatopenai as chatopenai
+
         get_response_func = chatopenai.get_response
     elif bot_type == "llmopenai":
+        import helpers.chat.llmopenai as llmopenai
+
         get_response_func = llmopenai.get_response
     elif bot_type == "llmcohere":
+        import helpers.chat.llmcohere as llmcohere
+
         get_response_func = llmcohere.get_response
 
     if get_response_func:

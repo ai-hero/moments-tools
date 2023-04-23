@@ -1,15 +1,7 @@
 from langchain.chat_models import ChatOpenAI
-from langchain import PromptTemplate, LLMChain
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    SystemMessagePromptTemplate,
-    AIMessagePromptTemplate,
-    HumanMessagePromptTemplate,
-)
 from langchain.schema import AIMessage, HumanMessage, SystemMessage
 import sys
 import logging
-from pprint import pformat
 from helpers.bot_config import BotConfig
 
 logging.basicConfig(

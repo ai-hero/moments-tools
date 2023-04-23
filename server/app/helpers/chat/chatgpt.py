@@ -1,7 +1,6 @@
 import openai
 import sys
 import logging
-from pprint import pformat
 from helpers.bot_config import BotConfig
 
 logging.basicConfig(
