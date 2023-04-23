@@ -66,7 +66,7 @@ Messages:
         return f"""{self.get_system_message(conversation.get("context", None))}
 Messages:
 {self._build_text_messages(conversation["messages"])}
-{self.config["roles"]['assistant']}: """
+{self.config["roles"]['assistant']}: """.strip()
 
     def get_system_message(self: "BotConfig", context: str):
         if self.version:  # works on any config version

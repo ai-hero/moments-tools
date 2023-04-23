@@ -16,5 +16,8 @@ def get_response(bot_config: BotConfig, conversation: dict):
     # Complete with langchain
     prompt = bot_config.build_prompt(conversation)
     response = llm(prompt)
-    response_message = {"role": "assistant", "content": response.strip()}
+    response_message = {
+        "role": "assistant",
+        "content": response.splitlines()[0].strip(),
+    }
     return response_message

@@ -91,7 +91,7 @@ def get_bot_response(
                 len(f"{bot_config.assistant}: ") :
             ]
         conversation["messages"].append(response_message)
-        LOG.info(
+        LOG.debug(
             "%s/%s| %s: %s\t%s: %s",
             bot_config.config["type"],
             conversation["id"],

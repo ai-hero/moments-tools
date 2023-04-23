@@ -18,11 +18,11 @@ def get_response(bot_config: BotConfig, conversation: dict):
     langchain_messages = []
     for message in messages:
         if message["role"] == "system":
-            langchain_messages.append(SystemMessage(message["content"]))
+            langchain_messages.append(SystemMessage(content=message["content"]))
         elif message["role"] == "user":
-            langchain_messages.append(HumanMessage(message["content"]))
+            langchain_messages.append(HumanMessage(content=message["content"]))
         elif message["role"] == "assistant":
-            langchain_messages.append(AIMessage(message["content"]))
+            langchain_messages.append(AIMessage(content=message["content"]))
     response = chat(langchain_messages)
     response_message = {"role": "assistant", "content": response.content}
     return response_message
