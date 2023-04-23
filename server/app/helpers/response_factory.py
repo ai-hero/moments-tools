@@ -27,9 +27,7 @@ def get_bot_response(
     conversation["timestamp"] = f"{datetime.now().isoformat()}"
     conversation.pop("response_id", None)
 
-    bot_config = load_bot_config(
-        conversation["bot_type"], conversation["bot_id"], conversation["bot_variant"]
-    )
+    bot_config = None
     if not ALLOW_OVERRIDE:
         # Don't do this in production - will be injecting stuff
         LOG.warning(
@@ -44,6 +42,12 @@ def get_bot_response(
                 bot_config.config["id"],
                 bot_config.config["variant"],
             )
+    if not bot_config:
+        bot_config = load_bot_config(
+            conversation["bot_type"],
+            conversation["bot_id"],
+            conversation["bot_variant"],
+        )
     conversation["bot_id"] = bot_config.config["id"]
     conversation["bot_type"] = bot_config.config["type"]
     conversation["bot_variant"] = bot_config.config["variant"]
