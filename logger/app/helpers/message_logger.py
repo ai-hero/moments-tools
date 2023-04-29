@@ -7,7 +7,6 @@ from io import BytesIO
 from minio import Minio
 from threading import Thread
 from tempfile import NamedTemporaryFile
-from uuid import uuid4
 from urllib3.response import HTTPResponse
 from collections import defaultdict
 from helpers.bot_config import BotConfig
