@@ -24,6 +24,14 @@ services:
       - 8081:8080
     networks:
       - llm-tools
+  
+  bd:
+    <<: *base
+    container_name: chat-dataset-builder
+    user: user
+    env_file: .env
+    networks:
+      - llm-tools
 
 networks:
   llm-tools: 

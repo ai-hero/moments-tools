@@ -22,7 +22,7 @@ def get_bot_response(
     config_override: dict = None,
 ):
     conversation["id"] = conversation_id
-    conversation["message_id"] = str(uuid4())
+    request_message_id = conversation["message_id"]
     conversation["request_id"] = str(uuid4())
     conversation["timestamp"] = f"{datetime.now().isoformat()}"
     conversation.pop("response_id", None)
@@ -118,6 +118,7 @@ def get_bot_response(
         )
 
     conversation["message_id"] = str(uuid4())
+    conversation["previous_message_id"] = request_message_id  # Chain it
     conversation["timestamp"] = f"{datetime.now().isoformat()}"
     conversation["response_id"] = str(uuid4())
     stash_chat_message(conversation=conversation, bot_config=bot_config)
