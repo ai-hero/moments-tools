@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+from fire import Fire
+from helpers.message_logger import create_dataset
+
+
+def build_dataset(bot_type: str, bot_id: str, bot_variant: str):
+    create_dataset(
+        bot_type=bot_type,
+        bot_id=bot_id,
+        bot_variant=bot_variant,
+    )
+
+
+# The main routine just invokes the start function.
+if __name__ == "__main__":
+    Fire(build_dataset)

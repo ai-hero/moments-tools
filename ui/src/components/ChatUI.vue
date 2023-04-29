@@ -6,9 +6,9 @@ import { CubeTransparentIcon } from '@heroicons/vue/20/solid'
 const CONFIG = {
   "version": 0.1,
   "config": {
-    "variant": "experiment",
-    "id": "cafe",
     "type": "chatopenai",
+    "id": "cafe",
+    "variant": "experiment",
     "instructions": "You (the assistant) are a barista. You are helping a customer (the user) get their order. \nYour goal is to generate an order ticket at the end of the conversation. \nYou will welcome there into the cafe, and then ask them questions about their order. \nAlso, ask their name. When they are done, you must say: \n\"Alright! We'll let you know when your order is ready.\", followed by a summary of their order.\nDo not charge the customer. \n\nYOU CAN ONLY SPEAK ONE TURN AT A TIME.\n",
     "roles": {
       "user": "Customer",
@@ -78,30 +78,40 @@ export default defineComponent({
   data() {
     return {
       conversationId: uuidv4(),
+      responseMessageId: null,
       conversation: DEFAULT_CONVERSATION,
       userMessage: ""
     }
   },
   mounted() {
-    fetch(`/api/v1/conversations/${this.conversationId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json;charset=utf-8'
-      },
-      body: JSON.stringify(DEFAULT_CONVERSATION)
-    }).then(response => response.json())
-      .then(data => {
-        // handle the response
-        this.conversation = data;
-      })
-      .catch(error => {
-        // handle the error
-        console.error(error)
-      });
+    this.newConversation()
   },
   methods: {
+    newConversation() {
+      let default_conv = JSON.parse(JSON.stringify(DEFAULT_CONVERSATION))
+      default_conv.message_id = uuidv4()
+      default_conv.previous_message_id = null;
+      fetch(`/api/v1/conversations/${this.conversationId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(default_conv)
+      }).then(response => response.json())
+        .then(data => {
+          // handle the response
+          this.conversation = data;
+          this.responseMessageId = data.message_id
+        })
+        .catch(error => {
+          // handle the error
+          console.error(error)
+        });
+    },
     onUserMessage() {
       this.conversation.messages.push({ role: "user", content: this.userMessage });
+      this.conversation.message_id = uuidv4()
+      this.conversation.previous_message_id = this.responseMessageId
       this.scrollToEnd()
       fetch(`/api/v1/conversations/${this.conversationId}`, {
         method: 'POST',
