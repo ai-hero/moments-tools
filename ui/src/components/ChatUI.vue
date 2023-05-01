@@ -5,22 +5,19 @@ import { CubeTransparentIcon } from '@heroicons/vue/20/solid'
 
 const CONFIG = {
   "apiVersion": 0.2,
-  "kind": "LlmOpenAiAgent",
+  "kind": "LlmCohereAgent",
   "id": "cafebot",
-  "name": "CafeBot",
   "variant": 1,
   "init": "\
     Instructions: \"You are a barista at the cafe 'ISO Ikigai'. You are serving customers of the cafe as they walk up to you. You will welcome them, and then ask them questions about their order. Also, ask their name. When they are done, you must say: \"Alright! We'll let you know when your order is ready.\", followed by a summary of their order. Do not charge the customer. You will only respond with your immediate turn. Your response should start with 'Self: ' followed by what your response is delimited by double quotes. Respond with only ONE interaction at a time.\"\n\
-    Example: An example interaction with a customer - '''\\nSelf: \"Good morning! Welcome to ISO Ikigai cafe.\"\\nCustomer (unknown): \"Hello.\"\\nSelf: (smile) \"What can I get you?\"\\nCustomer (unknown): \"Can I get a cup of coffee please?\"\\nSelf: \"Sure. How would you like it?\"\\nCustomer (unknown): \"Black, no sugar please.\"\\nSelf: \"What size would that be?\"\\nCustomer (unknown): \"8 oz.\"\\nSelf: \"Great! We'll let you know when your order is ready\".'''\n\
+    Example: An example interaction with a customer - '''\\nContext: ```time: \"8:01am\"```\\nSelf: \"Good morning! Welcome to ISO Ikigai cafe.\"\\nCustomer (unknown): \"Hello.\"\\nSelf: (smile) \"What can I get you?\"\\nCustomer (unknown): \"Can I get a cup of coffee please?\"\\nSelf: \"Sure. How would you like it?\"\\nCustomer (unknown): \"Black, no sugar please.\"\\nSelf: \"What size would that be?\"\\nCustomer (unknown): \"8 oz.\"\\nSelf: \"Great! We'll let you know when your order is ready\".'''\n\
     Begin.\n\n\
   "
 }
 
-const DEFAULT_CONVERSATION = {
-  agent_kind: 'ChatGptAgent',
-  agent_id: 'cafe',
-  agent_variant: '01',
-  config_override: CONFIG,
+const DEFAULT_SNAPSHOT = {
+  occurrences: [],
+  __agent_config_override: CONFIG,
 }
 
 export default defineComponent({
@@ -30,9 +27,10 @@ export default defineComponent({
   },
   data() {
     return {
-      conversationId: uuidv4(),
-      responseMessageId: null,
-      conversation: DEFAULT_CONVERSATION,
+      agentInstanceId: uuidv4(),
+      momentId: uuidv4(),
+      previousSnapshotId: null,
+      snapshot: JSON.parse(JSON.stringify(DEFAULT_SNAPSHOT)),
       userMessage: ""
     }
   },
@@ -41,20 +39,19 @@ export default defineComponent({
   },
   methods: {
     newConversation() {
-      let default_conv = JSON.parse(JSON.stringify(DEFAULT_CONVERSATION))
-      default_conv.message_id = uuidv4()
-      default_conv.previous_message_id = null;
-      fetch(`/api/v1/conversations/${this.conversationId}`, {
+      let request_snapshot = JSON.parse(JSON.stringify(DEFAULT_SNAPSHOT))
+      request_snapshot.previous_snapshot_id = null;
+      fetch(`/api/v1/agents/${this.agentInstanceId}/${this.momentId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
         },
-        body: JSON.stringify(default_conv)
+        body: JSON.stringify(request_snapshot)
       }).then(response => response.json())
         .then(data => {
           // handle the response
-          this.conversation = data;
-          this.responseMessageId = data.message_id
+          this.snapshot = data;
+          this.previousSnapshotId = data.snapshot_id
         })
         .catch(error => {
           // handle the error
@@ -62,20 +59,19 @@ export default defineComponent({
         });
     },
     onUserMessage() {
-      this.conversation.messages.push({ role: "user", content: this.userMessage });
-      this.conversation.message_id = uuidv4()
-      this.conversation.previous_message_id = this.responseMessageId
+      this.snapshot.occurrences.push({ kind: "Participant", name: "Customer", identifier: "unknown", emotion: "", says: this.userMessage });
+      this.snapshot.previous_snapshot_id = this.previousSnapshotId
       this.scrollToEnd()
-      fetch(`/api/v1/conversations/${this.conversationId}`, {
+      fetch(`/api/v1/agents/${this.agentInstanceId}/${this.momentId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
         },
-        body: JSON.stringify(this.conversation)
+        body: JSON.stringify(this.snapshot)
       }).then(response => response.json())
         .then(data => {
           // handle the response
-          this.conversation = data;
+          this.snapshot = data;
           this.scrollToEnd()
         })
         .catch(error => {
@@ -86,8 +82,8 @@ export default defineComponent({
     },
     scrollToEnd() {
       this.$nextTick(() => {
-        var messages = this.$refs["messages"]
-        messages.scrollTop = messages.scrollHeight
+        var occurrences = this.$refs["occurrences"]
+        occurrences.scrollTop = occurrences.scrollHeight
       })
     }
   },
@@ -102,22 +98,42 @@ export default defineComponent({
       <div class="min-w-full border border-gray-600 rounded">
         <div class="w-full">
           <div class="relative flex items-center p-3 border-b border-gray-600">
-            {{ conversation.topic }}
+            Conversation with {{ agentInstanceId }} in moment {{ momentId }}
           </div>
-          <div class="relative w-full p-6 overflow-y-auto h-[40rem] scroll-auto" ref="messages">
+          <div class="relative w-full p-6 overflow-y-auto h-[40rem] scroll-auto" ref="occurrences">
             <ul class="space-y-2">
-              <li v-for="interaction of conversation.messages">
-                <div v-if="interaction.role == 'assistant'" class="flex justify-start items-center">
+              <li v-for="interaction of snapshot.occurrences">
+                <div v-if="interaction.kind == 'Self'" class="flex justify-start items-center">
                   <div class="relative flex p-3">
                     <CubeTransparentIcon class="w-10 h-10" />
                   </div>
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 border border-gray-300 rounded">
-                    <div class="block text-left">{{ interaction.content }}</div>
+                    <div class="block text-left">{{ interaction.says }}</div>
                   </div>
                 </div>
-                <div v-if="interaction.role == 'user'" class="flex justify-end items-center">
+                <div v-else-if="interaction.kind == 'Participant'" class="flex justify-end items-center">
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
-                    <div class="block text-right">{{ interaction.content }}</div>
+                    <div class="block text-right">{{ interaction.says }}</div>
+                  </div>
+                </div>
+                <div v-else-if="interaction.kind == 'Context'" class="flex justify-end items-center">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
+                    <div class="block text-right code">{{ interaction.context }}</div>
+                  </div>
+                </div>
+                <div v-else-if="interaction.kind == 'Instructions'" class="flex justify-end items-center">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
+                    <div class="block text-right code">{{ interaction.instructions }}</div>
+                  </div>
+                </div>
+                <div v-else-if="interaction.kind == 'Example'" class="flex justify-end items-center">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
+                    <div class="block text-right code">{{ interaction.example }}</div>
+                  </div>
+                </div>
+                <div v-else-if="interaction.kind == 'Begin'" class="flex justify-end items-center">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
+                    <div class="block text-right code">Begin.</div>
                   </div>
                 </div>
               </li>
@@ -137,12 +153,6 @@ export default defineComponent({
             </button>
           </div>
         </div>
-      </div>
-    </div>
-    <div v-if="conversation.messages && conversation.messages[0].role == 'system'"
-      class="flex justify-start items-center">
-      <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
-        <div class="block text-left whitespace-pre-line">{{ conversation.messages[0].content }}</div>
       </div>
     </div>
     <div></div>

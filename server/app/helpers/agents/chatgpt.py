@@ -1,8 +1,9 @@
-import openai
+import re
 import sys
 import logging
+import openai
 from moments.agent import Agent
-from moments.moment import Moment, Self, Participant
+from moments.moment import Moment, Self, Participant, Context
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="%(levelname)s | %(message)s"
@@ -20,10 +21,12 @@ openai.ChatCompletion.create(
 class ChatGptAgent(Agent):
     def respond(self: "ChatGptAgent", moment: Moment) -> Self:
         messages = []
-        moment_with_init = Moment.parse(self.agent_config.config["init"])
+        moment_with_init = Moment.parse(self.config.init)
         messages.append({"role": "system", "content": str(moment_with_init)})
         for occurrence in moment.occurrences:
-            if isinstance(occurrence, Self):
+            if isinstance(occurrence, Context):
+                messages[0]["content"] += str(occurrence) + "\n"
+            elif isinstance(occurrence, Self):
                 messages.append(
                     {"role": "assistant", "content": occurrence.content["says"]}
                 )
@@ -31,12 +34,11 @@ class ChatGptAgent(Agent):
                 messages.append({"role": "user", "content": occurrence.content["says"]})
 
         # Complete with openai
+        print(f"{messages}")
         response = openai.ChatCompletion.create(model=OPENAI_MODEL, messages=messages)
         response_message = response["choices"][0]["message"]
         line = response_message["content"].splitlines()[0].strip()
         print(f"-->{line}<--")
-        import re
-
         if not re.match(r"^Self:\s+(\((.*)\)\s+)?\"(.+)\"$", line):
             # Try to fix it
             if not line.startswith('"'):

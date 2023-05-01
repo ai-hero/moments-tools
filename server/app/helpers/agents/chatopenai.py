@@ -1,3 +1,4 @@
+import re
 import sys
 import logging
 from langchain.chat_models import ChatOpenAI
@@ -16,7 +17,7 @@ chat = ChatOpenAI(temperature=0)
 class ChatOpenAiAgent(Agent):
     def respond(self: "ChatOpenAiAgent", moment: Moment) -> Self:
         langchain_messages = []
-        moment_with_init = Moment.parse(self.agent_config.config["init"])
+        moment_with_init = Moment.parse(self.config.init)
         langchain_messages.append(SystemMessage(content=str(moment_with_init)))
         for occurrence in moment.occurrences:
             if isinstance(occurrence, Self):
@@ -30,8 +31,6 @@ class ChatOpenAiAgent(Agent):
         response = chat(langchain_messages)
         line = response.content.splitlines()[0].strip()
         print(f"-->{line}<--")
-        import re
-
         if not re.match(r"^Self:\s+(\((.*)\)\s+)?\"(.+)\"$", line):
             # Try to fix it
             if not line.startswith('"'):

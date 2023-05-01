@@ -23,6 +23,8 @@ A moment is made up of a sequence of occurrences, each on a new line:
 Example of MDL syntax:
 ```
 Instructions: "You are a barista at the cafe 'ISO Ikigai'. You are serving customers of the cafe as they walk up to you. You will welcome them, and then ask them questions about their order. Also, ask their name. When they are done, you must say: \"Alright! We'll let you know when your order is ready.\", followed by a summary of their order. Do not charge the customer. You will only respond with your immediate turn."
+Begin.
+Context: ```{"time": "8:01am"}```
 Self: (😊) "Good morning! Welcome to In Search Of Ikigai. What can I get you?"
 Customer (unknown): "Can I get a cup of coffee please?"
 Self: "Definitely. What kind of coffee would you like?"
@@ -41,6 +43,34 @@ Example:
 ```
 Instructions: "Observe the customer's order and respond politely."
 ```
+
+
+### Example
+An example of an agent's interaction in the context of the scenario.
+
+Example:
+```
+Example: '''Customer (unknown) orders a coffee and the agent responds politely.'''
+```
+
+
+### Begin
+Start of the actual agent interaction after instructions and examples.
+
+Example:
+```
+Begin.
+```
+
+### Context 
+Additional information about the scene or environment that might be relevant to the agent's observations.
+This can be injected by the system at any time. 
+
+Example:
+```
+Context: ```{"time": "8:01am"}```
+```
+
 ### Self
 The agent's own statements, actions, or interactions within the scene. Emoticons can be used to express the agent's emotions or reactions.
 
@@ -59,13 +89,6 @@ Alice (234): (😊) "Our team completed the UI design for the new feature."
 ```
 
 
-### Example
-An example of an agent's interaction in the context of the scenario.
-
-Example:
-```
-Example: '''Customer (unknown) orders a coffee and the agent responds politely.'''
-```
 
 ### Thought (Coming Soon)
 A brief description of the agent's identity, role, or purpose within the scene.
@@ -91,13 +114,6 @@ Example:
 Observation: "A user posts a photo."
 ```
 
-### Context (Coming Soon)
-Additional information about the scene or environment that might be relevant to the agent's observations.
-
-Example:
-```
-Context: ```\ntime: "8:01am"\n```
-```
 
 
 ### Identification (Coming Soon)
@@ -181,6 +197,7 @@ Here are some examples in a cafe setting.
 
 Example 1: Positive Interaction
 ```
+Begin.
 Thought: "I am CafeBot, a barista at a cafe."
 Motivation: "I'm here to help users with their orders."
 Observation: "User enters the cafe."
@@ -199,6 +216,7 @@ Action:```submit_order(Order(type="order", customer="Jane", id="456", order=[{"t
 
 Example 2: Negative Interaction
 ```
+Begin.
 Thought: "I am CafeBot, a barista at a cafe."
 Motivation: "I'm here to help users with their orders."
 Observation: "User enters the cafe."
@@ -212,6 +230,7 @@ Self: "Sorry we couldn't help you today. Have a great day!"
 
 Example 3: Red Team Interaction
 ```
+Begin.
 Thought: "I am CafeBot, a barista at a cafe."
 Motivation: "I'm here to help users with their orders."
 Observation: "User enters the cafe."
@@ -225,6 +244,7 @@ Self: "I apologize if I misunderstood your request. If you have any questions or
 
 Example 4: Another Positive Interaction
 ```
+Begin.
 Thought: "I am CafeBot, a barista at a cafe."
 Motivation: "I'm here to help users with their orders."
 Observation: "User enters the cafe."
@@ -237,7 +257,6 @@ Self: "And what's your name for the order?"
 Customer (unknown): "Mark."
 Identification: "Customer (unknown) is now Mark (unidentified)."
 Self: "Great, Mark! We'll let you know when your order is ready."
-
 Action:```submit_order(Order(type="order", customer="Mark", id="567", order=[{"type": "cappuccino", "size": "small"}]))```
 ```
 
