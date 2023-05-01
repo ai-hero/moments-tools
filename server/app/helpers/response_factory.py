@@ -1,12 +1,13 @@
 import sys
 import logging
+import pathlib
 from functools import cache
-from helpers.bot_config import BotConfig
 from copy import deepcopy
 from datetime import datetime
 from uuid import uuid4
-from typing import Callable
-from helpers.logging.chat import stash_chat_message
+from moments.agent import AgentConfig, AgentFactory
+from moments.moment import Moment, Self, Participant
+
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="%(levelname)s | %(message)s"
@@ -27,88 +28,79 @@ def get_bot_response(
     conversation["timestamp"] = f"{datetime.now().isoformat()}"
     conversation.pop("response_id", None)
 
-    bot_config = None
+    agent_config = None
     if not ALLOW_OVERRIDE:
         # Don't do this in production - will be injecting stuff
         LOG.warning(
             "ALLOW_OVERRIDE is True. This will allow client to override agent config. Use for development only."
         )
         if config_override:
-            bot_config = BotConfig(config_override)
+            agent_config = AgentConfig(config_override)
             LOG.warning(
-                "CRITICAL: OVERRIDING CONFIG for conversation: %s - %s-%s-%s",
+                "CRITICAL: OVERRIDING CONFIG for conversation: %s - %s-%s-%s called %s",
                 conversation_id,
-                bot_config.config["type"],
-                bot_config.config["id"],
-                bot_config.config["variant"],
+                agent_config.config["kind"],
+                agent_config.config["id"],
+                agent_config.config["variant"],
+                agent_config.config["name"],
             )
-    if not bot_config:
-        bot_config = load_bot_config(
-            conversation["bot_type"],
-            conversation["bot_id"],
-            conversation["bot_variant"],
+    if not agent_config:
+        agent_config = load_agent_config(
+            conversation["agent_kind"],
+            conversation["agent_id"],
+            conversation["agent_variant"],
         )
-    conversation["bot_id"] = bot_config.config["id"]
-    conversation["bot_type"] = bot_config.config["type"]
-    conversation["bot_variant"] = bot_config.config["variant"]
-    bot_type = conversation["bot_type"]
-    stash_chat_message(conversation=conversation)
+
+    # Load and register the classes to avoid api key errors
+    match agent_config.config["kind"]:
+        case "ChatGptAgent":
+            from helpers.agents.chatgpt import ChatGptAgent
+
+            AgentFactory.register(ChatGptAgent)
+        case "ChatOpenAiAgent":
+            from helpers.agents.chatopenai import ChatOpenAiAgent
+
+            AgentFactory.register(ChatOpenAiAgent)
+        case "LlmCohereAgent":
+            from helpers.agents.llmcohere import LlmCohereAgent
+
+            AgentFactory.register(LlmCohereAgent)
+        case "LlmOpenAiAgent":
+            from helpers.agents.llmopenai import LlmOpenAiAgent
+
+            AgentFactory.register(LlmOpenAiAgent)
+
+    if "messages" not in conversation:
+        conversation["messages"] = []
+    conversation["agent_type"] = agent_config.config["kind"]
+    conversation["agent_id"] = agent_config.config["id"]
+    conversation["agent_variant"] = agent_config.config["variant"]
+
+    # stash_chat_message(conversation=conversation)
     conversation = deepcopy(conversation)
 
-    # Depending on the bot_type import the right response function.
+    # Depending on the agent_kind import the right response function.
     # Imports are dynamic, as keys might not be set in .env file for
     # the rest.
-    get_response_func: Callable = None
-    if bot_type == "chatgpt":
-        import helpers.chat.chatgpt as chatgpt
-
-        get_response_func = chatgpt.get_response
-    elif bot_type == "chatopenai":
-        import helpers.chat.chatopenai as chatopenai
-
-        get_response_func = chatopenai.get_response
-    elif bot_type == "llmopenai":
-        import helpers.chat.llmopenai as llmopenai
-
-        get_response_func = llmopenai.get_response
-    elif bot_type == "llmcohere":
-        import helpers.chat.llmcohere as llmcohere
-
-        get_response_func = llmcohere.get_response
-
-    if get_response_func:
-        # Prepare messages including system message
-        conversation["messages"] = [
-            message
-            for message in conversation.get("messages", [])
-            if message["role"] in ["user", "assistant"]
-        ]
-        # Override system message with the updated instructions including context.
-        system_message = {
-            "role": "system",
-            "content": bot_config.get_system_message(conversation.get("context", None)),
-        }
-        conversation["messages"].insert(0, system_message)
-        response_message = get_response_func(bot_config, conversation)
-        if response_message["content"].startswith(f"{bot_config.assistant}: "):
-            response_message["content"] = response_message["content"][
-                len(f"{bot_config.assistant}: ") :
-            ]
-        conversation["messages"].append(response_message)
-        LOG.debug(
-            "%s/%s| %s: %s\t%s: %s",
-            bot_config.config["type"],
-            conversation["id"],
-            bot_config.config["roles"].get(
-                conversation["messages"][-2]["role"], "System"
-            ),
-            conversation["messages"][-2]["content"],
-            bot_config.config["roles"].get(
-                conversation["messages"][-1]["role"], "System"
-            ),
-            conversation["messages"][-1]["content"],
+    agent = AgentFactory.create(agent_config)
+    if agent:
+        moment = Moment.parse("")
+        for message in conversation["messages"]:
+            if message["role"] == "assistant":
+                moment.occurrences.append(Self(emotion="", says=message["content"]))
+            elif message["role"] == "user":
+                moment.occurrences.append(
+                    Participant(
+                        name="User",
+                        identifier="unidentified",
+                        emotion="",
+                        says=message["content"],
+                    )
+                )
+        agent_response = agent.respond(moment)
+        conversation["messages"].append(
+            {"role": "assistant", "content": agent_response.content["says"]}
         )
-
     else:
         conversation["messages"].append(
             {
@@ -121,12 +113,16 @@ def get_bot_response(
     conversation["previous_message_id"] = request_message_id  # Chain it
     conversation["timestamp"] = f"{datetime.now().isoformat()}"
     conversation["response_id"] = str(uuid4())
-    stash_chat_message(conversation=conversation, bot_config=bot_config)
+    # stash_chat_message(conversation=conversation, bot_config=bot_config)
     return conversation
 
 
 @cache
-def load_bot_config(bot_type: str, bot_id: str, bot_variant: str):
-    config_file = f"{bot_type}-{bot_id}-{bot_variant}.yaml"
+def load_agent_config(agent_kind: str, agent_id: str, agent_variant: str):
+    config_file = (
+        pathlib.Path(__file__).parent.resolve()
+        / "configs"
+        / f"{agent_kind}-{agent_id}-{agent_variant}.yaml"
+    )
     LOG.info("Loading bot config from file: %s", config_file)
-    return BotConfig.from_file(config_file)
+    return AgentConfig.from_file(config_file)

@@ -1,4 +1,7 @@
-# Starter-kit for the TribeAI LLM Hackathon
+
+
+
+# System Architecture
 
 Open sourcing a few common LLM Tools for the hackathon so that you start from a baseline. Feel free to fork as needed. 
 
