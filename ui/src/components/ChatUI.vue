@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CubeTransparentIcon } from '@heroicons/vue/20/solid'
 
 const CONFIG = {
-  "apiVersion": 0.1,
+  "apiVersion": 0.2,
   "kind": "LlmOpenAiAgent",
   "id": "cafebot",
   "name": "CafeBot",
