@@ -3,7 +3,7 @@ build:
 	docker build .
 
 run: 
-	docker compose up --build run 
+	docker compose up --remove-orphans --build run 
 
 test: 
 	docker compose run --build test 

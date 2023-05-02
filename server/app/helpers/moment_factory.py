@@ -8,7 +8,7 @@ from uuid import uuid4
 import pytz
 from moments.agent import AgentConfig, AgentFactory, Agent
 from moments.moment import Moment, Self, Participant, Context
-
+from helpers.snapshots_logger import stash_snapshot
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="%(levelname)s | %(message)s"
@@ -81,13 +81,14 @@ def get_next_snapshot(
     assert agent
 
     snapshot_id = str(uuid4())
+    snapshot["snapshot_id"] = snapshot_id
     assert "previous_snapshot_id" in snapshot
     snapshot["timestamp"] = datetime.now().isoformat()
 
     assert "occurrences" in snapshot
 
-    LOG.debug(moment_id)
-    # stash_chat_message(moment=moment)
+    snapshot["moment_id"] = moment_id
+    stash_snapshot(snapshot=snapshot, agent=agent)
     snapshot = deepcopy(snapshot)
 
     moment = Moment.parse("")
@@ -118,7 +119,7 @@ def get_next_snapshot(
     snapshot["previous_snapshot_id"] = snapshot_id  # Chain it
     snapshot["snapshot_id"] = str(uuid4())
     snapshot["timestamp"] = datetime.now().isoformat()
-    # stash_chat_message(moment=moment, bot_config=bot_config)
+    stash_snapshot(snapshot=snapshot, agent=agent)
     return snapshot
 
 
