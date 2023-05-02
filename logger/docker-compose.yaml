@@ -11,7 +11,7 @@ services:
 
   run:
     <<: *base
-    container_name: chat-logger
+    container_name: logger
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health_check"]
       interval: 5s
@@ -27,7 +27,7 @@ services:
   
   bd:
     <<: *base
-    container_name: chat-dataset-builder
+    container_name: dataset-builder
     user: user
     env_file: .env
     networks:

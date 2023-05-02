@@ -6,7 +6,7 @@ run:
 	docker compose up --remove-orphans --build run 
 
 test: 
-	docker compose run --remove-orphans --build test 
+	docker compose run --build test 
 
 build_dataset: 
-	docker compose run --remove-orphans --build bd $(ARGS)
+	docker compose run --build bd build_dataset $(ARGS)

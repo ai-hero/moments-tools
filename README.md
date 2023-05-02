@@ -1,4 +1,29 @@
-# Starter-kit for the TribeAI LLM Hackathon
+# Moments
+Moments is a library that introduces a structured definition language, called Moment Definition Language (MDL), to represent agent observations in order to feed them and complete them with an LLM. MDL is specifically designed for agents to capture and structure their observations of events and interactions in real life or online environments. The goal is to represent these observations in a clear and easy-to-understand format, which can be utilized in a wide range of scenarios such as face-to-face interactions, online conversations, or real-world events by providing it at any time to an LLM to get its completion.
+
+Read more about it [here](./server/app/moments/README.md)
+
+## Releases
+### v0.2 - Introducing Moments and Moments Definition Language
+While standardizing the bot config from v0.1, we realized that the framework could benefit from a standard way to serialize and deserialize the conversation. Additionally, we thought that enforcing two party conversation - between user and agent, and ONE system message is too restricting. 
+Insrtead, we thought of that the `prompt-->completion` paradigm in LLM could be used as a "brain process" of an agent. If we can get to represent the world
+that the agent observes, we can use an LLM to autocomple what happens next.
+
+v0.2 still includes features 1..4 from v0.1, just enforces MDL for using the system. 
+
+### v0.1 - Bot + BotConfig
+Update: There is limited documentation for v0.1, and we recommend using v0.2. 
+1. It contains a simple chat client (Vue) and a server (Python). I've pre-loaded the server with [Update: 23Apr - bugfixes]:
+- OpenAI Chat model with LangChain
+- Cohere Chat model with LangChain (using Cohere's LLM)
+- OpenAI Chat model with LangChain (using OpenAI LLM)
+- OpenAI ChatGPT model directly
+2. You can change your prompt on the server in a config.yaml file. But for faster development of your prompt, you can also override it in the client so that you can try out variations, without restarting the server.
+3. Log each and every message in your OWN S3 bucket (from which we can generate training data)
+4. Generate (prompt, completion) pair data for fine tuning an LLM.
+
+
+# System Architecture
 
 Open sourcing a few common LLM Tools for the hackathon so that you start from a baseline. Feel free to fork as needed. 
 

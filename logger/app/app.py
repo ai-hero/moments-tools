@@ -2,7 +2,7 @@ import traceback
 import falcon
 from falcon import Request, Response
 from routes.health_check import HealthCheck
-from routes.messages import MessageLogger
+from routes.snapshots import SnapshotLogger
 
 
 def custom_handle_uncaught_exception(
@@ -21,7 +21,7 @@ app.add_error_handler(Exception, custom_handle_uncaught_exception)
 
 # The routes
 app.add_route("/", HealthCheck())
-app.add_route("/v1/messages/{message_id}", MessageLogger())
+app.add_route("/v1/snapshots/{snapshot_id}", SnapshotLogger())
 
 # Alternative routes (e.g. for Sagemaker)
 app.add_route("/health_check", HealthCheck())
