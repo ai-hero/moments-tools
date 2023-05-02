@@ -1,7 +1,22 @@
 # Moments
-Moments is an LLM-based agent framework that introduces a structured definition language, called Moment Definition Language (MDL), to represent agent observations in order to feed them and complete them with an LLM. The motivation here is that the `prompt-->completion` paradigm in LLM could be used as a "brain process" of an agent. If we can get to represent the world that the agent observes, we can use an LLM to autocomple what happens next. With this new MDL we can capture one agent's observations about the world that may include its own thoughts, contexts, actions it performs, instructions, and also other participants - one or more users or agents. 
+Moments is a Large Language Model (LLM)-based agent framework that introduces a structured definition language, called Moment Definition Language (MDL), to represent agent observations in order to feed them and complete them with an LLM. The motivation here is that the `prompt-->completion` paradigm in LLM could be used as a "brain process" of an agent. If we can get to represent the world that the agent observes, we can use an LLM to autocomple what happens next. With this new MDL we can capture one agent's observations about the world in a moment that may include occurrences like its own thoughts, contexts, actions it performs, instructions, and also other participants - one or more users or agents. An LLM can then be used by the agent to participate in that moment by saying something, performing an action, etc. 
 
-MDL is specifically designed for agents to capture and structure their observations of events and interactions in real life or online environments. The goal is to represent these observations in a clear and easy-to-understand format, which can be utilized in a wide range of scenarios such as face-to-face interactions, online conversations, or real-world events by providing it at any time to an LLM to get its completion.
+For example:
+```
+Instructions: "You are a barista at the cafe 'ISO Ikigai'. You are serving customers of the cafe as they walk up to you. You will welcome them, and then ask them questions about their order. Also, ask their name. When they are done, you must say: \"Alright! We'll let you know when your order is ready.\", followed by a summary of their order. Do not charge the customer. You will only respond with your immediate turn."
+Begin.
+Context: ```{"time": "8:01am"}```
+Self: (😊) "Good morning! Welcome to In Search Of Ikigai. What can I get you?"
+Customer (unknown): "Can I get a cup of coffee please?"
+Self: "Definitely. What kind of coffee would you like?"
+Customer: "A single shot espresso, please."
+Self: "Sure. May I have a name for the order?"
+Customer: "John."
+Identification: "Customer (unknown) is now John (unidentified) [Customer]."
+Self: Alright John, your order should be up shortly.
+```
+
+MDL is specifically designed for agents to capture and structure their observations of events and interactions in real life or online environments. The goal is to represent these observations in a clear and easy-to-understand format, which can be utilized in a wide range of scenarios such as face-to-face interactions, online conversations, or real-world events by providing it at any time to an LLM to get its completion. 
 
 # Moment Definition Language (MDL) Documentation
 ## Overview
