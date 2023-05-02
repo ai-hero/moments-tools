@@ -16,7 +16,7 @@ Identification: "Customer (unknown) is now John (unidentified) [Customer]."
 Self: Alright John, your order should be up shortly.
 ```
 
-MDL is specifically designed for agents to capture and structure their observations of events and interactions in real life or online environments. The goal is to represent these observations in a clear and easy-to-understand format, which can be utilized in a wide range of scenarios such as face-to-face interactions, online conversations, or real-world events by providing it at any time to an LLM to get its completion. 
+MDL is specifically designed for agents to capture and structure their observations of events and interactions in real life or online environments in simple English (with the flexibility to use any other language for what agent/participant is saying). This is done in order to benefit from the large amount of English text already used to train foundational models - e.g. how stories, plays, etc. are written. The goal is to represent these observations in a clear and easy-to-understand format, which can be utilized in a wide range of scenarios such as face-to-face interactions, online conversations, or real-world events by providing it at any time to an LLM to get its completion. 
 
 # Moment Definition Language (MDL) Documentation
 ## Overview
