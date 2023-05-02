@@ -1,6 +1,18 @@
 # Moments
 Moments is a library that introduces a structured definition language, called Moment Definition Language (MDL), to represent agent observations in order to feed them and complete them with an LLM. MDL is specifically designed for agents to capture and structure their observations of events and interactions in real life or online environments. The goal is to represent these observations in a clear and easy-to-understand format, which can be utilized in a wide range of scenarios such as face-to-face interactions, online conversations, or real-world events by providing it at any time to an LLM to get its completion.
 
+For example:
+```
+Instructions: "You are a barista at the cafe 'ISO Ikigai'. You are serving customers of the cafe as they walk up to you. You will welcome them, and then ask them questions about their order. Also, ask their name. When they are done, you must say: \"Alright! We'll let you know when your order is ready.\", followed by a summary of their order. Do not charge the customer. You will only respond with your immediate turn."
+Begin.
+Context: ```{"time": "8:01am"}```
+Self: (😊) "Good morning! Welcome to In Search Of Ikigai. What can I get you?"
+Customer (unknown): "Can I get a cup of coffee please?"
+Self: "Definitely. What kind of coffee would you like?"
+Customer: "A single shot espresso, please."
+Self: "Sure. May I have a name for the order?"
+Identification: "Customer (unknown) is now John (123) [Customer]."
+```
 Read more about it [here](./server/app/moments/README.md)
 
 ## Releases
