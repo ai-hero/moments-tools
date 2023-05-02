@@ -1,5 +1,7 @@
 # Moments
-Moments is a library that introduces a structured definition language, called Moment Definition Language (MDL), to represent agent observations in order to feed them and complete them with an LLM. MDL is specifically designed for agents to capture and structure their observations of events and interactions in real life or online environments. The goal is to represent these observations in a clear and easy-to-understand format, which can be utilized in a wide range of scenarios such as face-to-face interactions, online conversations, or real-world events by providing it at any time to an LLM to get its completion.
+Moments is a library that introduces a structured definition language, called Moment Definition Language (MDL), to represent agent observations in order to feed them and complete them with an LLM. The motivation here is that the `prompt-->completion` paradigm in LLM could be used as a "brain process" of an agent. If we can get to represent the world that the agent observes, we can use an LLM to autocomple what happens next. 
+With this new MDL we can capture one agent's observations about the world that may include its own thoughts, contexts, actions it performs, instructions, and also other participants - one or more users or agents. 
+MDL is specifically designed for agents to capture and structure their observations of events and interactions in real life or online environments. The goal is to represent these observations in a clear and easy-to-understand format, which can be utilized in a wide range of scenarios such as face-to-face interactions, online conversations, or real-world events by providing it at any time to an LLM to get its completion.
 
 # Moment Definition Language (MDL) Documentation
 ## Overview
@@ -13,7 +15,7 @@ A moment is made up of a sequence of occurrences, each on a new line:
 1. Occurrences should be written in the order they occur in the scene.
 2. Use a consistent capitalization style for occurrence names (e.g., Title Case or Sentence case).
 3. Use a colon after each occurrence name, followed by a space.
-4. Write each occurrence on a separate line.
+4. Write each occurrence on a separate line. (TODO: Fix this with grammar-based parser instead of current way of splitlines).
 5. For the Self and Participant occurrences, use a parenthesis and a space to separate the emoticon from the text.
 6. For the Identification occurrence, use the format "Name (unidentified)" for unidentified participants and "Name (ID)" for identified participants.
 7. Use double quotes (") to enclose text for the Thought, Self, Participant, and other occurrences that use text.
