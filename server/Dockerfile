@@ -1,7 +1,7 @@
 FROM python:3.11-slim-bullseye
 
 RUN apt-get -y update && apt-get install -y --no-install-recommends build-essential  \
-    wget nginx ca-certificates \
+    wget nginx ca-certificates git \
     && pip install --upgrade pip setuptools \ 
     && rm -rf /var/lib/apt/lists/*
 
@@ -30,7 +30,7 @@ WORKDIR /home/user/app
 
 # Code check
 RUN pylint --disable=R,C ./**/*.py
-# RUN mypy --no-namespace-packages --ignore-missing-imports .
+RUN mypy --no-namespace-packages --ignore-missing-imports .
 
 # Set entrypoint
 ENTRYPOINT [ "sh", "./entrypoint" ]

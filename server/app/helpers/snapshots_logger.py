@@ -3,6 +3,7 @@ import logging
 import os
 from copy import deepcopy
 import httpx
+from moments.snapshot import Snapshot
 from moments.agent import Agent
 
 LOGGER_URL = os.environ.get("LOGGER_URL", "http://logger:8080")
@@ -14,20 +15,20 @@ logging.basicConfig(
 LOG = logging.getLogger(__name__)
 
 
-def stash_snapshot(snapshot: dict, agent: Agent):
-    snapshot = deepcopy(snapshot)
-    snapshot_id = snapshot["snapshot_id"]
-    snapshot["__agent_info"] = {
+def stash_snapshot(snapshot: Snapshot, agent: Agent):
+    snapshot_dict = deepcopy(snapshot.to_dict())
+    snapshot_id = snapshot_dict["id"]
+    snapshot_dict["__agent_info"] = {
         "id": agent.id,
         "name": agent.name,
         "config": deepcopy(agent.config.__dict__),
     }
     with httpx.Client(base_url=LOGGER_URL) as client:
         print(f"{LOGGER_URL}/v1/snapshots/{snapshot_id}")
-        response = client.post(f"/v1/snapshots/{snapshot_id}", json=snapshot)
+        response = client.post(f"/v1/snapshots/{snapshot_id}", json=snapshot_dict)
         if response.status_code >= 400:
             LOG.error(
                 "Unable to log moment: %s / snapshot: %s",
-                snapshot["moment_id"],
-                snapshot["snapshot_id"],
+                snapshot_dict["moment"]["id"],
+                snapshot_id,
             )

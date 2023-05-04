@@ -2,35 +2,32 @@
 import { defineComponent } from 'vue'
 import { v4 as uuidv4 } from 'uuid';
 import { CubeTransparentIcon } from '@heroicons/vue/20/solid'
+import Preloader from './Preloader.vue'
 
 const CONFIG = {
-  "apiVersion": 0.2,
+  "apiVersion": "0.2.1",
   "kind": "LlmCohereAgent",
   "id": "cafebot",
-  "variant": "01",
+  "variant": "experiment",
   "init": "\
     Instructions: \"You are a barista at the cafe 'ISO Ikigai'. You are serving customers of the cafe as they walk up to you. You will welcome them, and then ask them questions about their order. Also, ask their name. When they are done, you must say: \"Alright! We'll let you know when your order is ready.\", followed by a summary of their order. Do not charge the customer. You will only respond with your immediate turn. Your response should start with 'Self: ' followed by what your response is delimited by double quotes. Respond with only ONE interaction at a time.\"\n\
-    Example: An example interaction with a customer - '''\\nContext: ```time: \"8:01am\"```\\nSelf: \"Good morning! Welcome to ISO Ikigai cafe.\"\\nCustomer (unknown): \"Hello.\"\\nSelf: (smile) \"What can I get you?\"\\nCustomer (unknown): \"Can I get a cup of coffee please?\"\\nSelf: \"Sure. How would you like it?\"\\nCustomer (unknown): \"Black, no sugar please.\"\\nSelf: \"What size would that be?\"\\nCustomer (unknown): \"8 oz.\"\\nSelf: \"Great! We'll let you know when your order is ready\".'''\n\
+    Example: An example interaction with a customer - '''\\nContext: ```time: \"8:01am\"```\\nSelf: \"Good morning! Welcome to ISO Ikigai cafe.\"\\nCustomer (unknown): \"Hello.\"\\nSelf: (smile) \"What can I get you?\"\\nCustomer (unknown): \"Can I get a cup of coffee please?\"\\nSelf: \"Sure. How would you like it?\"\\nCustomer (unknown): \"Black, no sugar please.\"\\nSelf: \"What size would that be?\"\\nCustomer (unknown): \"8 oz.\"\\nSelf: \"Great! We'll let you know when your order is ready.\"'''\n\
     Begin.\n\n\
   "
-}
-
-const DEFAULT_SNAPSHOT = {
-  occurrences: [],
-  __agent_config_override: CONFIG,
 }
 
 export default defineComponent({
   name: "ChatUI",
   components: {
-    CubeTransparentIcon
+    CubeTransparentIcon,
+    Preloader
   },
   data() {
     return {
+      isLoading: true,
       agentInstanceId: uuidv4(),
-      momentId: uuidv4(),
       previousSnapshotId: null,
-      snapshot: JSON.parse(JSON.stringify(DEFAULT_SNAPSHOT)),
+      snapshot: { id: uuidv4(), moment: { id: uuidv4(), occurrences: [] } },
       userMessage: ""
     }
   },
@@ -39,30 +36,10 @@ export default defineComponent({
   },
   methods: {
     newConversation() {
-      let request_snapshot = JSON.parse(JSON.stringify(DEFAULT_SNAPSHOT))
-      request_snapshot.previous_snapshot_id = null;
-      fetch(`/api/v1/agents/${this.agentInstanceId}/${this.momentId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json;charset=utf-8'
-        },
-        body: JSON.stringify(request_snapshot)
-      }).then(response => response.json())
-        .then(data => {
-          // handle the response
-          this.snapshot = data;
-          this.previousSnapshotId = data.snapshot_id
-        })
-        .catch(error => {
-          // handle the error
-          console.error(error)
-        });
-    },
-    onUserMessage() {
-      this.snapshot.occurrences.push({ kind: "Participant", name: "Customer", identifier: "unknown", emotion: "", says: this.userMessage });
-      this.snapshot.previous_snapshot_id = this.previousSnapshotId
-      this.scrollToEnd()
-      fetch(`/api/v1/agents/${this.agentInstanceId}/${this.momentId}`, {
+      this.isLoading = true
+      this.snapshot.previous_snapshot_id = null;
+      this.snapshot.__agent_config_override = CONFIG;
+      fetch(`/api/v1/agents/${this.agentInstanceId}/${this.snapshot.moment.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
@@ -72,11 +49,38 @@ export default defineComponent({
         .then(data => {
           // handle the response
           this.snapshot = data;
+          this.previousSnapshotId = data.id
+        })
+        .catch(error => {
+          // handle the error
+          console.error(error)
+        }).finally(() => {
+          this.isLoading = false;
+        });
+    },
+    onUserMessage() {
+      this.isLoading = true
+      this.snapshot.moment.occurrences.push({ kind: "Participant", content: { name: "Customer", identifier: "unknown", emotion: "", says: this.userMessage } });
+      this.snapshot.previous_snapshot_id = this.previousSnapshotId
+      this.scrollToEnd()
+      fetch(`/api/v1/agents/${this.agentInstanceId}/${this.snapshot.moment.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify(this.snapshot)
+      }).then(response => response.json())
+        .then(data => {
+          // handle the response
+          this.snapshot = data;
+          this.previousSnapshotId = data.id
           this.scrollToEnd()
         })
         .catch(error => {
           // handle the error
           console.error(error)
+        }).finally(() => {
+          this.isLoading = false;
         });
       this.userMessage = ""
     },
@@ -98,44 +102,59 @@ export default defineComponent({
       <div class="min-w-full border border-gray-600 rounded">
         <div class="w-full">
           <div class="relative flex items-center p-3 border-b border-gray-600">
-            Conversation with {{ agentInstanceId }} in moment {{ momentId }}
+            Conversation with {{ agentInstanceId }} in moment {{ snapshot.moment.id }}
           </div>
           <div class="relative w-full p-6 overflow-y-auto h-[40rem] scroll-auto" ref="occurrences">
             <ul class="space-y-2">
-              <li v-for="interaction of snapshot.occurrences">
+              <li v-for="interaction of snapshot.moment.occurrences">
                 <div v-if="interaction.kind == 'Self'" class="flex justify-start items-center">
                   <div class="relative flex p-3">
                     <CubeTransparentIcon class="w-10 h-10" />
                   </div>
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 border border-gray-300 rounded">
-                    <div class="block text-left">{{ interaction.says }}</div>
+                    <div class="block text-left">{{ interaction.content.says }}</div>
                   </div>
                 </div>
                 <div v-else-if="interaction.kind == 'Participant'" class="flex justify-end items-center">
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
-                    <div class="block text-right">{{ interaction.says }}</div>
+                    <div class="block text-right">{{ interaction.content.says }}</div>
                   </div>
                 </div>
-                <div v-else-if="interaction.kind == 'Context'" class="flex justify-end items-center">
+                <div v-else-if="interaction.kind == 'Context'" class="flex justify-end items-center hidden">
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
-                    <div class="block text-right code">{{ interaction.context }}</div>
+                    <div class="block text-right code">Context: {{ interaction.content }}</div>
                   </div>
                 </div>
-                <div v-else-if="interaction.kind == 'Instructions'" class="flex justify-end items-center">
+                <div v-else-if="interaction.kind == 'Instructions'" class="flex justify-end items-center hidden">
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
-                    <div class="block text-right code">{{ interaction.instructions }}</div>
+                    <div class="block text-right code">Instructions: {{ interaction.content }}</div>
                   </div>
                 </div>
-                <div v-else-if="interaction.kind == 'Example'" class="flex justify-end items-center">
+                <div v-else-if="interaction.kind == 'Example'" class="flex justify-end items-center hidden">
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
-                    <div class="block text-right code">{{ interaction.example }}</div>
+                    <div class="block text-right code">Example: {{ interaction.content.title }} - {{
+                      interaction.content.example }}
+                    </div>
                   </div>
                 </div>
                 <div v-else-if="interaction.kind == 'Begin'" class="flex justify-end items-center">
-                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-900 border border-gray-300 rounded">
                     <div class="block text-right code">Begin.</div>
                   </div>
                 </div>
+              </li>
+              <li v-if="isLoading">
+                <div class="flex justify-start items-center">
+                  <div class="relative flex p-3">
+                    <CubeTransparentIcon class="w-10 h-10" />
+                  </div>
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 border border-gray-300 rounded">
+                    <div class="block text-left">
+                      <Preloader theText="" />
+                    </div>
+                  </div>
+                </div>
+
               </li>
             </ul>
           </div>

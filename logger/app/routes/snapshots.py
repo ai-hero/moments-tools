@@ -20,7 +20,7 @@ class SnapshotLogger:
     ) -> falcon.Response:
         """Handles logging requests as POST"""
         snapshot = req.get_media()
-        assert snapshot["snapshot_id"] == snapshot_id
+        assert snapshot["id"] == snapshot_id
 
         LOG.info("POST Snapshot: %s", str(snapshot_id))
 
@@ -33,8 +33,8 @@ class SnapshotLogger:
                 agent_info["config"]["id"],
                 agent_info["config"]["variant"],
                 agent_info["id"],
-                snapshot["moment_id"],
-                snapshot["snapshot_id"],
+                snapshot["moment"]["id"],
+                snapshot["id"],
                 snapshot,
             ),
         ).start()

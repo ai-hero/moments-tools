@@ -8,7 +8,7 @@ from minio import Minio
 from tempfile import NamedTemporaryFile
 from urllib3.response import HTTPResponse
 from collections import defaultdict
-from moments.moment import Moment
+from moments.snapshot import Snapshot
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="%(levelname)s | %(message)s"
@@ -79,7 +79,7 @@ def create_dataset(agent_kind: str, agent_id: str, agent_variant: str):
                     DATA_BUCKET, o.object_name
                 )
                 snapshot = json.loads(response.read().decode("utf-8"))
-                moment_id = snapshot["moment_id"]
+                moment_id = snapshot["moment"]["id"]
                 moments[moment_id].append(snapshot)
             finally:
                 response.close()
@@ -92,9 +92,9 @@ def create_dataset(agent_kind: str, agent_id: str, agent_variant: str):
         all_snapshot_ids = []
         all_parent_ids = []
         for snapshot in snapshots:
-            if "snapshot_id" in snapshot and "previous_snapshot_id" in snapshot:
-                all_snapshots[snapshot["snapshot_id"]] = snapshot
-                all_snapshot_ids.append(snapshot["snapshot_id"])
+            if "id" in snapshot and "previous_snapshot_id" in snapshot:
+                all_snapshots[snapshot["id"]] = snapshot
+                all_snapshot_ids.append(snapshot["id"])
                 if snapshot["previous_snapshot_id"]:
                     all_parent_ids.append(snapshot["previous_snapshot_id"])
 
@@ -111,23 +111,23 @@ def create_dataset(agent_kind: str, agent_id: str, agent_variant: str):
         output_snapshots.extend(leaf_snapshots)
 
     LOG.info("Loaded the generator bot config.")
-    for snapshot in leaf_snapshots:
+    for snapshot_dict in leaf_snapshots:
         # This will return entire conversation.
-        moment = Moment.parse(snapshot)
-        agent_info = snapshot["__agent_info"]
+        agent_info = snapshot_dict.pop("__agent_info", None)
+        snapshot = Snapshot.parse(snapshot)
         # Save to S3 in a new thread because it's slow
 
         # Uncomment to see the constructed text.
-        print(str(moment))
+        print(str(snapshot.moment))
         dataset.append(
             {
                 "agent_kind": agent_info["config"]["kind"],
                 "agent_id": agent_info["config"]["id"],
                 "agent_variant": agent_info["config"]["variant"],
                 "agent_instance_id": agent_info["id"],
-                "moment_id": snapshot["moment_id"],
-                "snapshot_id": snapshot["snapshot_id"],
-                "moment": str(moment),
+                "moment_id": snapshot.moment.id,
+                "snapshot_id": snapshot.id,
+                "moment": str(snapshot.moment),
             }
         )
 

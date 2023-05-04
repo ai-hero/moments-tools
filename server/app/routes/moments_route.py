@@ -29,6 +29,7 @@ class MomentRoute:
             agent_instance_id, moment_id, snapshot, agent_config_override
         )
 
+        snapshot["__agent_config_override"] = agent_config_override
         # Response body
         resp.status = falcon.HTTP_200  # pylint: disable=no-member
         resp.media = snapshot

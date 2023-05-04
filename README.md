@@ -16,10 +16,10 @@ Identification: "Customer (unknown) is now John (unidentified) [Customer]."
 Self: Alright John, your order should be up shortly.
 ```
 
-Read more about it [here](./server/app/moments/README.md)
+Read more about it [here](https://github.com/ai-hero/moments)
 
 ## Releases
-### v0.2 - Introducing Moments and Moments Definition Language
+### v0.2.1 - Introducing Moments and Moments Definition Language
 While standardizing the bot config from v0.1, we realized that the framework could benefit from a standard way to serialize and deserialize the conversation. Additionally, we thought that enforcing two party conversation - between user and agent, and ONE system message is too restricting. 
 Insrtead, we thought of that the `prompt-->completion` paradigm in LLM could be used as a "brain process" of an agent. If we can get to represent the world
 that the agent observes, we can use an LLM to autocomple what happens next. With this new MDL we can capture one agent's observations about the world that may include its own thoughts, contexts, actions it performs, instructions, and also other participants - one or more users or agents. 

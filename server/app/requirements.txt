@@ -18,3 +18,7 @@ mypy==1.0.0
 openai==0.27.4
 langchain==0.0.147
 cohere==4.2.0
+
+# Moments
+git+https://github.com/ai-hero/moments.git@48eb600
+types-pytz

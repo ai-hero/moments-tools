@@ -2,12 +2,12 @@ import sys
 import logging
 import pathlib
 from functools import cache
-from copy import deepcopy
 from datetime import datetime
 from uuid import uuid4
 import pytz
 from moments.agent import AgentConfig, AgentFactory, Agent
-from moments.moment import Moment, Self, Participant, Context
+from moments.moment import Self, Context
+from moments.snapshot import Snapshot
 from helpers.snapshots_logger import stash_snapshot
 
 logging.basicConfig(
@@ -74,53 +74,45 @@ def get_agent(agent_instance_id: str, agent_config_override: dict) -> Agent:
 def get_next_snapshot(
     agent_instance_id: str,
     moment_id: str,
-    snapshot: dict,
-    agent_config_override: dict = None,
+    snapshot_dict: dict,
+    agent_config_override: dict,
 ):
     agent = get_agent(agent_instance_id, agent_config_override)
     assert agent
 
     snapshot_id = str(uuid4())
-    snapshot["snapshot_id"] = snapshot_id
-    assert "previous_snapshot_id" in snapshot
-    snapshot["timestamp"] = datetime.now().isoformat()
+    snapshot_dict["id"] = snapshot_id
+    assert "previous_snapshot_id" in snapshot_dict
+    snapshot_dict["timestamp"] = datetime.now().isoformat()
 
-    assert "occurrences" in snapshot
+    assert "moment" in snapshot_dict and "occurrences" in snapshot_dict["moment"]
 
-    snapshot["moment_id"] = moment_id
+    snapshot_dict["moment"]["id"] = moment_id
+
+    snapshot: Snapshot = Snapshot.parse(snapshot_dict)
+
     stash_snapshot(snapshot=snapshot, agent=agent)
-    snapshot = deepcopy(snapshot)
 
-    moment = Moment.parse("")
-    for occurrence in snapshot["occurrences"]:
-        kind = occurrence.pop("kind", None)
-        match kind:
-            case "Self":
-                moment.occurrences.append(Self(**occurrence))
-            case "Participant":
-                moment.occurrences.append(Participant(**occurrence))
-            case "Context":
-                moment.occurrences.append(Context(**occurrence))
-        occurrence["kind"] = kind  # Put it back
-
-    if not moment.occurrences or (
-        moment.occurrences and not isinstance(moment.occurrences[0], Context)
+    # Add context if not already present.
+    if not snapshot.moment.occurrences or (
+        snapshot.moment.occurrences
+        and not isinstance(snapshot.moment.occurrences[0], Context)
     ):
         tz = pytz.timezone("America/Los_Angeles")
         current_time = datetime.now(tz)
-        moment.occurrences.insert(
-            0, Context('```{"time": "' + current_time.strftime("%I:%M %p") + '"}```')
+        snapshot.moment.occurrences.insert(
+            0, Context('```time: "' + current_time.strftime("%I:%M %p") + '"```')
         )
 
-    self_response = agent.respond(moment)
-    snapshot["occurrences"].append(
-        {"kind": "Self", "emotion": "", "says": self_response.content["says"]}
+    self_response = agent.respond(snapshot.moment)
+    snapshot.moment.occurrences.append(
+        Self(emotion="", says=self_response.content["says"])
     )
-    snapshot["previous_snapshot_id"] = snapshot_id  # Chain it
-    snapshot["snapshot_id"] = str(uuid4())
-    snapshot["timestamp"] = datetime.now().isoformat()
+    snapshot.previous_snapshot_id = snapshot_id  # Chain it
+    snapshot.id = str(uuid4())
+    snapshot.timestamp = datetime.now().isoformat()
     stash_snapshot(snapshot=snapshot, agent=agent)
-    return snapshot
+    return snapshot.to_dict()
 
 
 @cache

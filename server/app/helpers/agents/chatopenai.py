@@ -2,7 +2,7 @@ import re
 import sys
 import logging
 from langchain.chat_models import ChatOpenAI
-from langchain.schema import AIMessage, HumanMessage, SystemMessage
+from langchain.schema import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from moments.agent import Agent
 from moments.moment import Moment, Participant, Self
 
@@ -16,7 +16,7 @@ chat = ChatOpenAI(temperature=0)
 
 class ChatOpenAiAgent(Agent):
     def respond(self: "ChatOpenAiAgent", moment: Moment) -> Self:
-        langchain_messages = []
+        langchain_messages: list[BaseMessage] = []
         moment_with_init = Moment.parse(self.config.init)
         langchain_messages.append(SystemMessage(content=str(moment_with_init)))
         for occurrence in moment.occurrences:
