@@ -1,0 +1,18 @@
+# Use for running a single service for local dev
+version: "3.9"  
+
+services:
+  base: &base
+    build: .
+
+  run:
+    <<: *base
+    container_name: ui
+    ports:
+      - 3000:3000
+    networks:
+      - llm-tools
+
+networks:
+  llm-tools: 
+    external: true
