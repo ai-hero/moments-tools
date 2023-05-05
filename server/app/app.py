@@ -2,7 +2,8 @@ import traceback
 import falcon
 from falcon import Request, Response
 from routes.health_check import HealthCheck
-from routes.moments_route import MomentRoute
+from routes.moments_route import MomentsRoute
+from routes.moment_route import MomentRoute
 
 
 def custom_handle_uncaught_exception(
@@ -22,4 +23,5 @@ app.add_error_handler(Exception, custom_handle_uncaught_exception)
 # The routes
 app.add_route("/", HealthCheck())
 app.add_route("/health_check", HealthCheck())
-app.add_route("/v1/agents/{agent_instance_id}/{moment_id}", MomentRoute())
+app.add_route("/v1/agents/{agent_instance_id}/moments", MomentsRoute())
+app.add_route("/v1/agents/{agent_instance_id}/moments/{moment_id}", MomentRoute())

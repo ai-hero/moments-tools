@@ -1,9 +1,15 @@
 import re
 import sys
 import logging
+import pytz
+from datetime import datetime
 from langchain.llms import Cohere
 from moments.agent import Agent
-from moments.moment import Moment, Participant, Self, Instructions, Example
+from moments.moment import (
+    Moment,
+    Self,
+    Context,
+)
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="%(levelname)s | %(message)s"
@@ -15,14 +21,24 @@ llm = Cohere()
 
 
 class LlmCohereAgent(Agent):
-    def respond(self: "LlmCohereAgent", moment: Moment) -> Self:
-        moment_with_init = Moment.parse(self.config.init)
+    def before(self: "LlmCohereAgent", moment: Moment):
+        # Add context if not already present.
+        is_context_added = False
         for occurrence in moment.occurrences:
-            if isinstance(occurrence, Self) or isinstance(occurrence, Participant):
-                moment_with_init.occurrences.append(occurrence)
+            if isinstance(occurrence, Context):
+                is_context_added = True
+                break
 
+        if not is_context_added:
+            tz = pytz.timezone("America/Los_Angeles")
+            current_time = datetime.now(tz)
+            moment.occurrences.append(
+                Context('```time: "' + current_time.strftime("%I:%M %p") + '"```')
+            )
+
+    def do(self: "LlmCohereAgent", moment: Moment):
         # Add final "Self:" for agent to speak.
-        prompt = str(moment_with_init) + "Self: "
+        prompt = str(moment) + "Self: "
         # Complete with langchain
         response = llm(prompt.strip())
         line = response.split("\n")[0].strip()
@@ -35,4 +51,7 @@ class LlmCohereAgent(Agent):
                 line = line + '"'
             if not line.startswith("Self: "):
                 line = "Self: " + line
-        return Self.parse(line)
+        moment.occurrences.append(Self.parse(line))
+
+    def after(self: "LlmCohereAgent", moment: Moment):
+        pass

@@ -4,9 +4,7 @@ import pathlib
 from functools import cache
 from datetime import datetime
 from uuid import uuid4
-import pytz
 from moments.agent import AgentConfig, AgentFactory, Agent
-from moments.moment import Self, Context
 from moments.snapshot import Snapshot
 from helpers.snapshots_logger import stash_snapshot
 
@@ -71,6 +69,17 @@ def get_agent(agent_instance_id: str, agent_config_override: dict) -> Agent:
     return AgentFactory.create(agent_instance_id, agent_config)
 
 
+def system(
+    agent_instance_id: str,
+    agent_config_override: dict,
+):
+    agent = get_agent(agent_instance_id, agent_config_override)
+    assert agent
+    snapshot = agent.system()
+    stash_snapshot(snapshot=snapshot, agent=agent)
+    return snapshot.to_dict()
+
+
 def get_next_snapshot(
     agent_instance_id: str,
     moment_id: str,
@@ -93,24 +102,7 @@ def get_next_snapshot(
 
     stash_snapshot(snapshot=snapshot, agent=agent)
 
-    # Add context if not already present.
-    if not snapshot.moment.occurrences or (
-        snapshot.moment.occurrences
-        and not isinstance(snapshot.moment.occurrences[0], Context)
-    ):
-        tz = pytz.timezone("America/Los_Angeles")
-        current_time = datetime.now(tz)
-        snapshot.moment.occurrences.insert(
-            0, Context('```time: "' + current_time.strftime("%I:%M %p") + '"```')
-        )
-
-    self_response = agent.respond(snapshot.moment)
-    snapshot.moment.occurrences.append(
-        Self(emotion="", says=self_response.content["says"])
-    )
-    snapshot.previous_snapshot_id = snapshot_id  # Chain it
-    snapshot.id = str(uuid4())
-    snapshot.timestamp = datetime.now().isoformat()
+    snapshot = agent.next(snapshot)
     stash_snapshot(snapshot=snapshot, agent=agent)
     return snapshot.to_dict()
 

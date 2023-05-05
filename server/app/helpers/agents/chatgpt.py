@@ -2,8 +2,18 @@ import re
 import sys
 import logging
 import openai
+import pytz
+from datetime import datetime
 from moments.agent import Agent
-from moments.moment import Moment, Self, Participant, Context
+from moments.moment import (
+    Moment,
+    Self,
+    Participant,
+    Context,
+    Instructions,
+    Example,
+    Begin,
+)
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="%(levelname)s | %(message)s"
@@ -19,10 +29,32 @@ openai.ChatCompletion.create(
 
 
 class ChatGptAgent(Agent):
-    def respond(self: "ChatGptAgent", moment: Moment) -> Self:
+    def before(self: "ChatGptAgent", moment: Moment):
+        # Add context if not already present.
+        is_context_added = False
+        for occurrence in moment.occurrences:
+            if isinstance(occurrence, Context):
+                is_context_added = True
+                break
+
+        if not is_context_added:
+            tz = pytz.timezone("America/Los_Angeles")
+            current_time = datetime.now(tz)
+            moment.occurrences.append(
+                Context('```time: "' + current_time.strftime("%I:%M %p") + '"```')
+            )
+
+    def do(self: "ChatGptAgent", moment: Moment):
+        system = ""
+        for occurrence in moment.occurrences:
+            if (
+                isinstance(occurrence, Instructions)
+                or isinstance(occurrence, Example)
+                or isinstance(occurrence, Begin)
+            ):
+                system += str(occurrence) + "\n"
         messages = []
-        moment_with_init = Moment.parse(self.config.init)
-        messages.append({"role": "system", "content": str(moment_with_init)})
+        messages.append({"role": "system", "content": system})
         for occurrence in moment.occurrences:
             if isinstance(occurrence, Context):
                 messages[0]["content"] += str(occurrence) + "\n"
@@ -47,4 +79,7 @@ class ChatGptAgent(Agent):
                 line = line + '"'
             if not line.startswith("Self: "):
                 line = "Self: " + line
-        return Self.parse(line)
+        moment.occurrences.append(Self.parse(line))
+
+    def after(self: "ChatGptAgent", moment: Moment):
+        pass

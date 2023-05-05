@@ -1,10 +1,20 @@
 import re
 import sys
 import logging
+import pytz
+from datetime import datetime
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import AIMessage, HumanMessage, SystemMessage, BaseMessage
 from moments.agent import Agent
-from moments.moment import Moment, Participant, Self
+from moments.moment import (
+    Moment,
+    Participant,
+    Self,
+    Context,
+    Instructions,
+    Example,
+    Begin,
+)
 
 logging.basicConfig(
     stream=sys.stdout, level=logging.INFO, format="%(levelname)s | %(message)s"
@@ -15,10 +25,34 @@ chat = ChatOpenAI(temperature=0)
 
 
 class ChatOpenAiAgent(Agent):
-    def respond(self: "ChatOpenAiAgent", moment: Moment) -> Self:
+    def before(self: "ChatOpenAiAgent", moment: Moment):
+        # Add context if not already present.
+        is_context_added = False
+        for occurrence in moment.occurrences:
+            if isinstance(occurrence, Context):
+                is_context_added = True
+                break
+
+        if not is_context_added:
+            tz = pytz.timezone("America/Los_Angeles")
+            current_time = datetime.now(tz)
+            moment.occurrences.append(
+                Context('```time: "' + current_time.strftime("%I:%M %p") + '"```')
+            )
+
+    def do(self: "ChatOpenAiAgent", moment: Moment):
         langchain_messages: list[BaseMessage] = []
-        moment_with_init = Moment.parse(self.config.init)
-        langchain_messages.append(SystemMessage(content=str(moment_with_init)))
+
+        system = ""
+        for occurrence in moment.occurrences:
+            if (
+                isinstance(occurrence, Instructions)
+                or isinstance(occurrence, Example)
+                or isinstance(occurrence, Begin)
+            ):
+                system += str(occurrence) + "\n"
+
+        langchain_messages.append(SystemMessage(content=str(system)))
         for occurrence in moment.occurrences:
             if isinstance(occurrence, Self):
                 langchain_messages.append(AIMessage(content=occurrence.content["says"]))
@@ -39,4 +73,7 @@ class ChatOpenAiAgent(Agent):
                 line = line + '"'
             if not line.startswith("Self: "):
                 line = "Self: " + line
-        return Self.parse(line)
+        moment.occurrences.append(Self.parse(line))
+
+    def after(self: "ChatOpenAiAgent", moment: Moment):
+        pass

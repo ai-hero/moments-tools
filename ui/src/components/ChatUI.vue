@@ -28,7 +28,7 @@ export default defineComponent({
       error: "",
       agentInstanceId: uuidv4(),
       previousSnapshotId: null,
-      snapshot: { id: uuidv4(), moment: { id: uuidv4(), occurrences: [] } },
+      snapshot: { id: uuidv4(), moment: { id: uuidv4(), occurrences: [] } }, // Temporary
       userMessage: ""
     }
   },
@@ -41,7 +41,7 @@ export default defineComponent({
       this.isLoading = true
       this.snapshot.previous_snapshot_id = null;
       this.snapshot.__agent_config_override = CONFIG;
-      fetch(`/api/v1/agents/${this.agentInstanceId}/${this.snapshot.moment.id}`, {
+      fetch(`/api/v1/agents/${this.agentInstanceId}/moments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
@@ -52,13 +52,33 @@ export default defineComponent({
           // handle the response
           this.snapshot = data;
           this.previousSnapshotId = data.id
+          fetch(`/api/v1/agents/${this.agentInstanceId}/moments/${this.snapshot.moment.id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: JSON.stringify(this.snapshot)
+          }).then(response => response.json())
+            .then(data => {
+              // handle the response
+              this.snapshot = data;
+              this.previousSnapshotId = data.id
+              this.scrollToEnd()
+            })
+            .catch(error => {
+              // handle the error
+              console.error(error)
+              this.error = `${error}`;
+            }).finally(() => {
+              this.isLoading = false;
+            });
         })
         .catch(error => {
           // handle the error
           console.error(error)
           this.error = `${error}`;
         }).finally(() => {
-          this.isLoading = false;
+
         });
     },
     onUserMessage() {
@@ -67,7 +87,7 @@ export default defineComponent({
       this.snapshot.moment.occurrences.push({ kind: "Participant", content: { name: "Customer", identifier: "unknown", emotion: "", says: this.userMessage } });
       this.snapshot.previous_snapshot_id = this.previousSnapshotId
       this.scrollToEnd()
-      fetch(`/api/v1/agents/${this.agentInstanceId}/${this.snapshot.moment.id}`, {
+      fetch(`/api/v1/agents/${this.agentInstanceId}/moments/${this.snapshot.moment.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
@@ -142,8 +162,8 @@ export default defineComponent({
                     </div>
                   </div>
                 </div>
-                <div v-else-if="interaction.kind == 'Begin'" class="flex justify-end items-center">
-                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-900 border border-gray-300 rounded">
+                <div v-else-if="interaction.kind == 'Begin'" class="flex justify-end items-center hidden">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
                     <div class="block text-right code">Begin.</div>
                   </div>
                 </div>
