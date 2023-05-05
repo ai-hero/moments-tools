@@ -22,7 +22,7 @@ class MomentRoute:
 
         # Get agent config override from episode.
         # Keep it in so that it will be sent back in the response.
-        agent_config_override = snapshot.get("__agent_config_override", None)
+        agent_config_override = snapshot.pop("__agent_config_override", None)
 
         # Get response
         snapshot = get_next_snapshot(

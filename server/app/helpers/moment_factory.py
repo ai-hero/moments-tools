@@ -30,7 +30,7 @@ def get_agent(agent_instance_id: str, agent_config_override: dict) -> Agent:
         LOG.warning(
             "ALLOW_OVERRIDE is True. This will allow client to override agent config. Use for development only."
         )
-        agent_config_override.pop("apiVersion", None)
+        agent_config_override.pop("mdl", None)
         if agent_config_override:
             agent_config = AgentConfig(**agent_config_override)
             LOG.warning(

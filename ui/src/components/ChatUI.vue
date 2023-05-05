@@ -5,12 +5,12 @@ import { CubeTransparentIcon } from '@heroicons/vue/20/solid'
 import Preloader from './Preloader.vue'
 
 const CONFIG = {
-  "apiVersion": "0.2.1",
-  "kind": "LlmCohereAgent",
-  "id": "cafebot",
-  "variant": "experiment",
-  "init": "\
-    Instructions: \"You are a barista at the cafe 'ISO Ikigai'. You are serving customers of the cafe as they walk up to you. You will welcome them, and then ask them questions about their order. Also, ask their name. When they are done, you must say: \"Alright! We'll let you know when your order is ready.\", followed by a summary of their order. Do not charge the customer. You will only respond with your immediate turn. Your response should start with 'Self: ' followed by what your response is delimited by double quotes. Respond with only ONE interaction at a time.\"\n\
+  mdl: "0.2.2",
+  kind: "LlmCohereAgent",
+  id: "cafebot",
+  variant: "experiment",
+  init: "\
+    Instructions: You are a barista at the cafe 'ISO Ikigai'. You are serving customers of the cafe as they walk up to you. You will welcome them, and then ask them questions about their order. Also, ask their name. When they are done, you must say: \"Alright! We'll let you know when your order is ready.\", followed by a summary of their order. Do not charge the customer. You will only respond with your immediate turn. Your response should start with 'Self: ' followed by what your response is delimited by double quotes. Respond with only ONE interaction at a time.\n\
     Example: An example interaction with a customer - '''\\nContext: ```time: \"8:01am\"```\\nSelf: \"Good morning! Welcome to ISO Ikigai cafe.\"\\nCustomer (unknown): \"Hello.\"\\nSelf: (smile) \"What can I get you?\"\\nCustomer (unknown): \"Can I get a cup of coffee please?\"\\nSelf: \"Sure. How would you like it?\"\\nCustomer (unknown): \"Black, no sugar please.\"\\nSelf: \"What size would that be?\"\\nCustomer (unknown): \"8 oz.\"\\nSelf: \"Great! We'll let you know when your order is ready.\"'''\n\
     Begin.\n\n\
   "
@@ -25,6 +25,7 @@ export default defineComponent({
   data() {
     return {
       isLoading: true,
+      error: "",
       agentInstanceId: uuidv4(),
       previousSnapshotId: null,
       snapshot: { id: uuidv4(), moment: { id: uuidv4(), occurrences: [] } },
@@ -36,6 +37,7 @@ export default defineComponent({
   },
   methods: {
     newConversation() {
+      this.error = ""
       this.isLoading = true
       this.snapshot.previous_snapshot_id = null;
       this.snapshot.__agent_config_override = CONFIG;
@@ -54,12 +56,14 @@ export default defineComponent({
         .catch(error => {
           // handle the error
           console.error(error)
+          this.error = `${error}`;
         }).finally(() => {
           this.isLoading = false;
         });
     },
     onUserMessage() {
       this.isLoading = true
+      this.error = ""
       this.snapshot.moment.occurrences.push({ kind: "Participant", content: { name: "Customer", identifier: "unknown", emotion: "", says: this.userMessage } });
       this.snapshot.previous_snapshot_id = this.previousSnapshotId
       this.scrollToEnd()
@@ -79,6 +83,7 @@ export default defineComponent({
         .catch(error => {
           // handle the error
           console.error(error)
+          this.error = `${error}`;
         }).finally(() => {
           this.isLoading = false;
         });
@@ -102,7 +107,7 @@ export default defineComponent({
       <div class="min-w-full border border-gray-600 rounded">
         <div class="w-full">
           <div class="relative flex items-center p-3 border-b border-gray-600">
-            Conversation with {{ agentInstanceId }} in moment {{ snapshot.moment.id }}
+            <div v-if="error" class="text-red-600">{{ error }}</div>
           </div>
           <div class="relative w-full p-6 overflow-y-auto h-[40rem] scroll-auto" ref="occurrences">
             <ul class="space-y-2">

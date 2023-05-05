@@ -3,7 +3,7 @@ Moments is a Large Language Model (LLM)-based agent framework that introduces a 
 
 Example:
 ```
-Instructions: "You are a barista at the cafe 'ISO Ikigai'. You are serving customers of the cafe as they walk up to you. You will welcome them, and then ask them questions about their order. Also, ask their name. When they are done, you must say: \"Alright! We'll let you know when your order is ready.\", followed by a summary of their order. Do not charge the customer. You will only respond with your immediate turn."
+Instructions: You are a barista at the cafe 'ISO Ikigai'. You are serving customers of the cafe as they walk up to you. You will welcome them, and then ask them questions about their order. Also, ask their name. When they are done, you must say: "Alright! We'll let you know when your order is ready.", followed by a summary of their order. Do not charge the customer. You will only respond with your immediate turn.
 Begin.
 Context: ```time: "8:01am"```
 Self: (😊) "Good morning! Welcome to In Search Of Ikigai. What can I get you?"
@@ -12,14 +12,14 @@ Self: "Definitely. What kind of coffee would you like?"
 Customer: "A single shot espresso, please."
 Self: "Sure. May I have a name for the order?"
 Customer: "John."
-Identification: "Customer (unknown) is now John (unidentified) [Customer]."
+Identification: Customer (unknown) is now John (unidentified) [Customer].
 Self: Alright John, your order should be up shortly.
 ```
 
 Read more about it [here](https://github.com/ai-hero/moments)
 
 ## Releases
-### v0.2.1 - Introducing Moments and Moments Definition Language
+### v0.2.2 - Introducing Moments and Moments Definition Language (MDL)
 While standardizing the bot config from v0.1, we realized that the framework could benefit from a standard way to serialize and deserialize the conversation. Additionally, we thought that enforcing two party conversation - between user and agent, and ONE system message is too restricting. 
 Insrtead, we thought of that the `prompt-->completion` paradigm in LLM could be used as a "brain process" of an agent. If we can get to represent the world
 that the agent observes, we can use an LLM to autocomple what happens next. With this new MDL we can capture one agent's observations about the world that may include its own thoughts, contexts, actions it performs, instructions, and also other participants - one or more users or agents. 
@@ -109,15 +109,13 @@ make run
 ### Generating training data from the logger
 As a server, the logger records each conversation message that the server sends to it. 
 
-You can generate training data for fine tuning your own LLM from the conversations recorded. The arguments you pass are the bot_type, bot_id, and bot_variant whose stored conversation data you would like to use to generate the data.
+You can generate training data for fine tuning your own LLM from the conversations recorded in MDL. The arguments you pass are the bot_type, bot_id, and bot_variant whose stored conversation data you would like to use to generate the data. 
 
-1. Make sure you change the `app/helpers/configs/dataset_generator.yaml` with instructions, etc. for your target bot config.
-2. Make sure you change bot_config.py to generate the write text serialization.  (#TODO: make a class for each bot)
-3. Then run the following from the terminal. This code will go through each message in each conversation in for the bot in the arguments. It traverses the conversation tree to identify leaf nodes and creates the dataset.
+Run the following from the terminal. This code will go through each message in each conversation in for the bot in the arguments. It traverses the conversation tree to identify leaf nodes and creates the dataset.
 ```
-docker compose run --build bd build_dataset chatopenai cafe experiment
+docker compose run --build bd build_dataset LlmCohereAgent cafebot experiment
 ```
-4. The dataset is a csv containing `conversation_id, message_id, conversation`. (#TODO: add annotator, and RLHF)
+4. The dataset is a csv containing `agent_kind,agent_id,agent_variant,agent_instance_id,moment_id,snapshot_id,moment`. (#TODO: add annotator, and RLHF)
 
 ## Production
 Not suitable for production use. At the least, set the `ALLOW_OVERRIDE` flag in `response_factory.py` to `False` so that client side prompt changes will not override the server side prompt.

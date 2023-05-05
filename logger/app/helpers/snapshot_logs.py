@@ -88,6 +88,11 @@ def create_dataset(agent_kind: str, agent_id: str, agent_variant: str):
     output_snapshots = []
     dataset = []
     for moment_id, snapshots in moments.items():
+        LOG.info(
+            "%s total snapshots found in the moment %s",
+            len(snapshots),
+            moment_id,
+        )
         all_snapshots = {}
         all_snapshot_ids = []
         all_parent_ids = []
@@ -111,10 +116,10 @@ def create_dataset(agent_kind: str, agent_id: str, agent_variant: str):
         output_snapshots.extend(leaf_snapshots)
 
     LOG.info("Loaded the generator bot config.")
-    for snapshot_dict in leaf_snapshots:
+    for snapshot_dict in output_snapshots:
         # This will return entire conversation.
         agent_info = snapshot_dict.pop("__agent_info", None)
-        snapshot = Snapshot.parse(snapshot)
+        snapshot = Snapshot.parse(snapshot_dict)
         # Save to S3 in a new thread because it's slow
 
         # Uncomment to see the constructed text.
