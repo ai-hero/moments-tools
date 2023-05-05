@@ -25,6 +25,7 @@ export default defineComponent({
   data() {
     return {
       isLoading: true,
+      mode: "use",
       error: "",
       agentInstanceId: uuidv4(),
       previousSnapshotId: null,
@@ -33,6 +34,9 @@ export default defineComponent({
     }
   },
   mounted() {
+    if (this.$route.query && this.$route.query.mode) {
+      this.mode = this.$route.query.mode
+    }
     this.newConversation()
   },
   methods: {
@@ -145,25 +149,25 @@ export default defineComponent({
                     <div class="block text-right">{{ interaction.content.says }}</div>
                   </div>
                 </div>
-                <div v-else-if="interaction.kind == 'Context'" class="flex justify-end items-center hidden">
-                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
+                <div v-else-if="mode == 'dev' && interaction.kind == 'Context'" class="flex justify-end items-center">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-400 border border-gray-300 rounded">
                     <div class="block text-right code">Context: {{ interaction.content }}</div>
                   </div>
                 </div>
-                <div v-else-if="interaction.kind == 'Instructions'" class="flex justify-end items-center hidden">
-                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
+                <div v-else-if="mode == 'dev' && interaction.kind == 'Instructions'" class="flex justify-end items-center">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-400 border border-gray-300 rounded">
                     <div class="block text-right code">Instructions: {{ interaction.content }}</div>
                   </div>
                 </div>
-                <div v-else-if="interaction.kind == 'Example'" class="flex justify-end items-center hidden">
-                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
+                <div v-else-if="mode == 'dev' && interaction.kind == 'Example'" class="flex justify-end items-center">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-400 border border-gray-300 rounded">
                     <div class="block text-right code">Example: {{ interaction.content.title }} - {{
                       interaction.content.example }}
                     </div>
                   </div>
                 </div>
-                <div v-else-if="interaction.kind == 'Begin'" class="flex justify-end items-center hidden">
-                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
+                <div v-else-if="mode == 'dev' && interaction.kind == 'Begin'" class="flex justify-end items-center">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-400 border border-gray-300 rounded">
                     <div class="block text-right code">Begin.</div>
                   </div>
                 </div>

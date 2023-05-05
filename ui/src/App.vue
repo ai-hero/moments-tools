@@ -1,9 +1,11 @@
 <script setup>
-import ChatUI from './components/ChatUI.vue'
 </script>
 
 <template>
-  <ChatUI />
+  <div id="nav">
+    <router-link to="/">New Chat</router-link>
+  </div>
+  <router-view />
 </template>
 
 <style scoped></style>
