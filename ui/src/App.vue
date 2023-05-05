@@ -2,9 +2,9 @@
 </script>
 
 <template>
-  <div id="nav">
+  <!-- <div id="nav">
     <router-link to="/">New Chat</router-link>
-  </div>
+  </div> -->
   <router-view />
 </template>
 
