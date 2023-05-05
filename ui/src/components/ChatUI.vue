@@ -154,7 +154,8 @@ export default defineComponent({
                     <div class="block text-right code">Context: {{ interaction.content }}</div>
                   </div>
                 </div>
-                <div v-else-if="mode == 'dev' && interaction.kind == 'Instructions'" class="flex justify-end items-center">
+                <div v-else-if="mode == 'dev' && interaction.kind == 'Instructions'"
+                  class="flex justify-end items-center">
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-400 border border-gray-300 rounded">
                     <div class="block text-right code">Instructions: {{ interaction.content }}</div>
                   </div>
@@ -183,7 +184,6 @@ export default defineComponent({
                     </div>
                   </div>
                 </div>
-
               </li>
             </ul>
           </div>
