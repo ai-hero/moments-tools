@@ -158,7 +158,7 @@ def create_dataset(agent_kind: str, agent_id: str, agent_variant: str):
 
         LOG.info("Uploading training dataset file.")
         dataset_file = os.path.join(
-            "datasets",
+            "captured-datasets",
             f"from-{agent_kind}-{agent_id}-{agent_variant}.csv",
         )
         with open(ntf.name, "rb") as file:

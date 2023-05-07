@@ -1,0 +1,24 @@
+# Use for running a single service for local dev
+version: "3.9"  
+
+services:
+  base: &base
+    build: .
+
+  test: 
+    <<: *base
+    command: "test"
+  
+  dg:
+    <<: *base
+    container_name: data-generation
+    user: user
+    env_file: .env
+    volumes:
+      - /Users/rahulparundekar/data/personalfinance.corpus:/home/user/app/dataset
+    networks:
+      - llm-tools
+
+networks:
+  llm-tools: 
+    external: true

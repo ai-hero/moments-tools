@@ -159,3 +159,5 @@ coverage
 *.sw?
 
 .vscode
+
+*.csv

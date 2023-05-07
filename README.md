@@ -19,6 +19,8 @@ Self: Alright John, your order should be up shortly.
 Read more about it [here](https://github.com/ai-hero/moments)
 
 ## Releases
+### v0.2.4 - Generate data wellknown sources (e.g. Cornell reddit scrape)
+
 ### v0.2.3 - Introducing Moments and Moments Definition Language (MDL)
 While standardizing the bot config from v0.1, we realized that the framework could benefit from a standard way to serialize and deserialize the conversation. Additionally, we thought that enforcing two party conversation - between user and agent, and ONE system message is too restricting. 
 Insrtead, we thought of that the `prompt-->completion` paradigm in LLM could be used as a "brain process" of an agent. If we can get to represent the world
@@ -49,6 +51,10 @@ Supports LangChain chat models, a chatbot using Langchain around Cohere, and Ope
 A simple chat UI that talks with the above server. 
 ### A Logging Server
 A logging server that can log each message and generate a dataset.
+### A data generator
+That can generate data from common public datrasets (e.g. Cornell's Reddit scrape)
+### A research directory
+A directory containing common examples and EDA.
 
 ## Getting Started
 - Make sure you have Docker+Docker Compose installed and running (e.g. you'll see the whale icon on the top right of your Mac).
@@ -117,6 +123,23 @@ Run the following from the terminal. This code will go through each message in e
 docker compose run --build bd build_dataset LlmCohereAgent cafebot experiment
 ```
 4. The dataset is a csv containing `agent_kind,agent_id,agent_variant,agent_instance_id,moment_id,snapshot_id,moment`. (#TODO: add annotator, and RLHF)
+
+### Generating data from existing datasets
+In the data-generation folder:
+
+First, change the volume in the `docker-compose.yaml`.
+
+Then run the data generator like so.
+```
+docker compose run --build dg generate_data reddit personal_finance TribeHackathonAgent personal_finance 01
+```
+Where:
+`reddit` - dataset type
+`personal_finance` - dataset name
+`TribeHackathonAgent`,  `personal_finance`, `01` - the agent kind, id and name for whom the config file from configs will be loaded. 
+
+### Research
+Ligt EDA is done in `research/EDA.ipynb`.
 
 ## Production
 Not suitable for production use. At the least, set the `ALLOW_OVERRIDE` flag in `response_factory.py` to `False` so that client side prompt changes will not override the server side prompt.
