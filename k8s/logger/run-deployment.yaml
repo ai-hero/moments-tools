@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -o ../k8s/logger -f docker-compose.yaml
+    kompose.version: 1.28.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: run
+  name: logger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: run
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -o ../k8s/logger -f docker-compose.yaml
+        kompose.version: 1.28.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.network/llm-tools: "true"
+        io.kompose.service: run
+    spec:
+      volumes:
+      - name: aws-credentials
+        secret:
+         secretName: aws-credentials
+         optional: true
+      containers:
+        - args:
+            - serve
+          image: registry.gitlab.com/shri_javadekar/scratch/llmhackathon-logger:latest
+          env:
+          - name: S3_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: aws-credentials
+                key: S3_ACCESS_KEY
+          - name: S3_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: aws-credentials
+                key: S3_SECRET_KEY
+          - name: S3_REGION_NAME
+            valueFrom:
+              secretKeyRef:
+                name: aws-credentials
+                key: S3_REGION_NAME
+          livenessProbe:
+            exec:
+              command:
+                - curl
+                - -f
+                - http://localhost:8080/health_check
+            failureThreshold: 5
+            periodSeconds: 5
+            timeoutSeconds: 30
+          name: logger
+          ports:
+            - containerPort: 8080
+          resources: {}
+      restartPolicy: Always
+status: {}
