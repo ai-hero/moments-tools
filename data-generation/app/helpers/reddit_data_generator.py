@@ -117,9 +117,12 @@ class RedditDataGenerator(DataGenerator):
                         conversation = list(reversed(conv))
                         occurrences: list[Occurrence] = []
                         op = None
+                        first_responder = None
                         for user, text, likes in conversation:
                             if op is None:
                                 op = user
+                            elif first_responder is None:
+                                first_responder = user
                             if user == op:
                                 occurrences.append(
                                     Participant(
@@ -129,9 +132,18 @@ class RedditDataGenerator(DataGenerator):
                                         says=text.replace("\n", "\\n"),
                                     )
                                 )
-                            else:
+                            elif user == first_responder:
                                 occurrences.append(
                                     Self(emotion=None, says=text.replace("\n", "\\n"))
+                                )
+                            else:
+                                occurrences.append(
+                                    Participant(
+                                        name=user.split()[0],
+                                        identifier=user.split()[0],
+                                        emotion=None,
+                                        says=text.replace("\n", "\\n"),
+                                    )
                                 )
                         yield Moment(str(uuid4()), occurrences)
                 except Exception as e:  # pylint: disable=broad-exception-caught
