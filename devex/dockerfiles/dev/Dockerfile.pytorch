@@ -1,0 +1,38 @@
+from pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel as base
+# from pytorch/pytorch:latest 
+
+# Install dependencies
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get install -yq --no-install-recommends \
+        build-essential \
+        git \
+        curl \
+        ca-certificates \
+        sudo \
+        locales \
+        openssh-server \
+        vim tzdata\
+        && \
+    # Remove the effect of `apt-get update`
+    rm -rf /var/lib/apt/lists/* && \
+    # Make the "en_US.UTF-8" locale
+    localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
+# Locale and Timezone
+ENV LANG=en_US.UTF-8 TZ=America/Los_Angeles
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Add user
+RUN groupadd -r user && useradd -rm -d /home/user -s /bin/bash -g user -u 1000 user && echo 'user:password' | chpasswd
+
+# Copy files.
+COPY root/* .
+COPY home/* /home/user/
+COPY workspace /home/user/workspace
+
+# Start SSH
+RUN service ssh start
+CMD ["/bin/bash","start_sshd.sh"]
+EXPOSE 22
+
