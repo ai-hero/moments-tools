@@ -17,13 +17,14 @@ ALLOW_OVERRIDE = False
 
 DEFAULT_AGENT_INFO = {
     "kind": "ChatGptAgent",
-    "id": "cafe",
+    "id": "pf",
     "variant": "01",
 }
 
 
 def get_agent(agent_instance_id: str, agent_config_override: dict) -> Agent:
-    if not ALLOW_OVERRIDE:
+    agent_config: AgentConfig = None
+    if ALLOW_OVERRIDE:
         # Don't do this in production - will be injecting stuff
         LOG.warning(
             "ALLOW_OVERRIDE is True. This will allow client to override agent config. Use for development only."
