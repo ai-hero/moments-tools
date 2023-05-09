@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+  labels:
+    app: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      containers:
+        - name: server
+          image: rparundekar/llmhackathon-server:latest
+          imagePullPolicy: Always
+          command:
+          - "serve"
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "128M"
+              cpu: "125m"
+            limits:
+              memory: "256M"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health_check
+              port: 8080
+          env:
+          - name: OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: api-credentials
+                key: OPENAI_API_KEY
+          - name: COHERE_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: api-credentials
+                key: COHERE_API_KEY
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server
+spec:
+  selector:
+    app: server
+  ports:
+    - protocol: TCP
+      port: 8080

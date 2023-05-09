@@ -161,3 +161,5 @@ coverage
 .vscode
 
 *.csv
+
+k8s/secrets
