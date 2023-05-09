@@ -8,8 +8,5 @@ run:
 test: 
 	docker compose run --build test 
 
-docker:
-	docker build . -t registry.gitlab.com/shri_javadekar/scratch/llmhackathon-logger:latest
-
-docker-push: docker
-	docker push registry.gitlab.com/shri_javadekar/scratch/llmhackathon-logger:latest
+docker-push:
+	docker buildx build --push --platform linux/amd64 . -t rparundekar/llmhackathon-logger:latest
