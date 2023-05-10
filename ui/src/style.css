@@ -8,3 +8,7 @@
   padding: 2rem;
   text-align: center;
 }
+
+.hand {
+  cursor: pointer;
+}
