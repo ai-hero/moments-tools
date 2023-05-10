@@ -1,7 +1,7 @@
 <script>
 import { defineComponent } from 'vue'
 import { v4 as uuidv4 } from 'uuid';
-import { CubeTransparentIcon } from '@heroicons/vue/20/solid'
+import { CubeTransparentIcon, ArrowPathIcon, PencilIcon } from '@heroicons/vue/20/solid'
 import Preloader from './Preloader.vue'
 
 const CONFIG = {
@@ -20,6 +20,8 @@ export default defineComponent({
   name: "ChatUI",
   components: {
     CubeTransparentIcon,
+    ArrowPathIcon,
+    PencilIcon,
     Preloader
   },
   data() {
@@ -30,7 +32,8 @@ export default defineComponent({
       agentInstanceId: uuidv4(),
       previousSnapshotId: null,
       snapshot: { id: uuidv4(), moment: { id: uuidv4(), occurrences: [] } }, // Temporary
-      userMessage: ""
+      userMessage: "",
+      history: []
     }
   },
   mounted() {
@@ -54,28 +57,10 @@ export default defineComponent({
       }).then(response => response.json())
         .then(data => {
           // handle the response
-          this.snapshot = data;
+          this.history.push(JSON.parse(JSON.stringify(data)))
+          this.snapshot = JSON.parse(JSON.stringify(data));
           this.previousSnapshotId = data.id
-          fetch(`/api/v1/agents/${this.agentInstanceId}/moments/${this.snapshot.moment.id}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: JSON.stringify(this.snapshot)
-          }).then(response => response.json())
-            .then(data => {
-              // handle the response
-              this.snapshot = data;
-              this.previousSnapshotId = data.id
-              this.scrollToEnd()
-            })
-            .catch(error => {
-              // handle the error
-              console.error(error)
-              this.error = `${error}`;
-            }).finally(() => {
-              this.isLoading = false;
-            });
+          this.complete()
         })
         .catch(error => {
           // handle the error
@@ -91,6 +76,32 @@ export default defineComponent({
       this.snapshot.moment.occurrences.push({ kind: "Participant", content: { name: "Customer", identifier: "unknown", emotion: "", says: this.userMessage } });
       this.snapshot.previous_snapshot_id = this.previousSnapshotId
       this.scrollToEnd()
+      this.history.push(JSON.parse(JSON.stringify(this.snapshot)));
+      this.complete()
+      this.userMessage = ""
+    },
+    refetch() {
+      this.isLoading = true
+      this.error = ""
+      this.history.pop()
+      this.snapshot = JSON.parse(JSON.stringify(this.history[this.history.length - 1]));
+      this.complete()
+    },
+    rollback() {
+      let lastSnapshot = null;
+      let lastOccurrences = null;
+      while (this.history.length > 2) {
+        lastSnapshot = this.history.pop()
+        lastOccurrences = lastSnapshot.moment.occurrences;
+        if (lastOccurrences[lastOccurrences.length - 1].kind == 'Participant')
+          break
+      }
+      if (lastOccurrences) {
+        this.userMessage = lastOccurrences[lastOccurrences.length - 1].content.says
+      }
+      this.snapshot = this.history[this.history.length - 1];
+    },
+    complete() {
       fetch(`/api/v1/agents/${this.agentInstanceId}/moments/${this.snapshot.moment.id}`, {
         method: 'POST',
         headers: {
@@ -100,7 +111,9 @@ export default defineComponent({
       }).then(response => response.json())
         .then(data => {
           // handle the response
-          this.snapshot = data;
+          this.history.push(JSON.parse(JSON.stringify(data)));
+          console.log("Snapshot: ", data)
+          this.snapshot = JSON.parse(JSON.stringify(data));
           this.previousSnapshotId = data.id
           this.scrollToEnd()
         })
@@ -111,7 +124,6 @@ export default defineComponent({
         }).finally(() => {
           this.isLoading = false;
         });
-      this.userMessage = ""
     },
     scrollToEnd() {
       this.$nextTick(() => {
@@ -143,8 +155,12 @@ export default defineComponent({
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 border border-gray-300 rounded">
                     <div class="block text-left">{{ interaction.content.says }}</div>
                   </div>
+                  <ArrowPathIcon v-if="!isLoading" class="w-4 h-4 text-gray-400 hover:text-gray-700 ml-2 hand"
+                    @click="refetch" />
                 </div>
                 <div v-else-if="interaction.kind == 'Participant'" class="flex justify-end items-center">
+                  <PencilIcon v-if="!isLoading" class="w-4 h-4 text-gray-400 hover:text-gray-700 mr-2 hand"
+                    @click="rollback" />
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
                     <div class="block text-right">{{ interaction.content.says }}</div>
                   </div>
