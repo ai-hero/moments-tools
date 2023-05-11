@@ -80,25 +80,23 @@ export default defineComponent({
       this.complete()
       this.userMessage = ""
     },
-    refetch() {
+    refetch(snapshot_id) {
       this.isLoading = true
       this.error = ""
-      this.history.pop()
+      do {
+        popped = this.history.pop()
+      }
+      while (popped.id != snapshot_id);
       this.snapshot = JSON.parse(JSON.stringify(this.history[this.history.length - 1]));
+      this.snapshot.occurrences.push({ kind: "Rejected", content: popped.moment.occurrences[popped.moment.occurrences.length - 1].content })
       this.complete()
     },
-    rollback() {
-      let lastSnapshot = null;
-      let lastOccurrences = null;
-      while (this.history.length > 2) {
-        lastSnapshot = this.history.pop()
-        lastOccurrences = lastSnapshot.moment.occurrences;
-        if (lastOccurrences[lastOccurrences.length - 1].kind == 'Participant')
-          break
+    rollback(snapshot_id) {
+      do {
+        popped = this.history.pop()
       }
-      if (lastOccurrences) {
-        this.userMessage = lastOccurrences[lastOccurrences.length - 1].content.says
-      }
+      while (popped.id != snapshot_id);
+      this.userMessage = popped.moment.occurrences[popped.moment.occurrences.length - 1].content.says
       this.snapshot = this.history[this.history.length - 1];
     },
     complete() {
@@ -156,11 +154,11 @@ export default defineComponent({
                     <div class="block text-left">{{ interaction.content.says }}</div>
                   </div>
                   <ArrowPathIcon v-if="!isLoading" class="w-4 h-4 text-gray-400 hover:text-gray-700 ml-2 hand"
-                    @click="refetch" />
+                    @click="refetch(snapshot.id)" />
                 </div>
                 <div v-else-if="interaction.kind == 'Participant'" class="flex justify-end items-center">
                   <PencilIcon v-if="!isLoading" class="w-4 h-4 text-gray-400 hover:text-gray-700 mr-2 hand"
-                    @click="rollback" />
+                    @click="rollback(snapshot.id)" />
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
                     <div class="block text-right">{{ interaction.content.says }}</div>
                   </div>
