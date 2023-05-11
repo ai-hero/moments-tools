@@ -52,6 +52,8 @@ class RedditDataGenerator(DataGenerator):
                 total += 1
 
         LOG.info("There are a total of %s utterances.", total)
+
+        # Group utterances by post (root)
         utterances: dict = defaultdict(dict)
         with open(
             Path(self.dataset_path) / "utterances.jsonl", "r", encoding="utf"
@@ -82,27 +84,34 @@ class RedditDataGenerator(DataGenerator):
         LOG.info("Generating conversation threads")
 
         for _, posts in utterances.items():
+            # Process a single post's comments
+            ## Get list of (ids of) all comments and of all non-leaf comments
             all_ids = []
             all_parent_ids = []
             for post_id, (_, _, parent, _) in posts.items():
                 all_ids.append(post_id)
                 all_parent_ids.append(parent)
 
+            # For faster inclusion testing on large conversations
+            all_parent_ids = set(all_parent_ids)
+
             leafs = [p for p in all_ids if p not in all_parent_ids]
             if len(leafs) == 1:
+                # If 0 comments other 
                 continue
             for leaf in leafs:
                 conv = []
                 l = leaf
                 bad_thread = False
                 try:
+                    # Construct conv as a leaf-to-root path, 
+                    # excluding paths with bad comments.
                     while l:
                         (user, text, parent, likes) = posts[l]
                         # Skip thread if person or comment was delted or removed
                         if (
                             user in ["[deleted]", "[removed]", "dequeued"]
-                            or text
-                            in [
+                            or text in [
                                 "[deleted]",
                                 "[removed]",
                             ]
@@ -110,15 +119,17 @@ class RedditDataGenerator(DataGenerator):
                         ):
                             bad_thread = True
                             break
-                        conv.append((user, text, likes))
+                        conv.append((l, user, text, likes))
                         l = parent
 
+                    ## Record the conv in chrolonogical order
+                    ## as a Moment with a list of occurences
                     if not bad_thread:
                         conversation = list(reversed(conv))
                         occurrences: list[Occurrence] = []
                         op = None
                         first_responder = None
-                        for user, text, likes in conversation:
+                        for _, user, text, likes in conversation:
                             if op is None:
                                 op = user
                             elif first_responder is None:
