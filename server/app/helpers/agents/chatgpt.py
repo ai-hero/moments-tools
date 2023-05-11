@@ -3,6 +3,7 @@ import sys
 import logging
 import openai
 import pytz
+from time import sleep
 from datetime import datetime
 from moments.agent import Agent
 from moments.moment import (
@@ -13,6 +14,7 @@ from moments.moment import (
     Instructions,
     Example,
     Begin,
+    Rejected,
 )
 
 logging.basicConfig(
@@ -67,7 +69,48 @@ class ChatGptAgent(Agent):
 
         # Complete with openai
         print(f"{messages}")
-        response = openai.ChatCompletion.create(model=OPENAI_MODEL, messages=messages)
+        try:
+            response = openai.ChatCompletion.create(
+                model=OPENAI_MODEL, messages=messages
+            )
+        except openai.error.RateLimitError:
+            sleep(1)
+            response = openai.ChatCompletion.create(
+                model=OPENAI_MODEL, messages=messages
+            )
+
+        # Add the second option as a rejected
+        print(len(response["choices"]))
+        if len(response["choices"]) > 1:
+            rejected_response_message = response["choices"][1]["message"]
+        else:
+            try:
+                rejected_response = openai.ChatCompletion.create(
+                    model=OPENAI_MODEL, messages=messages
+                )
+            except openai.error.RateLimitError:
+                sleep(1)
+                response = openai.ChatCompletion.create(
+                    model=OPENAI_MODEL, messages=messages
+                )
+            rejected_response_message = rejected_response["choices"][0]["message"]
+
+        rejected_line = rejected_response_message["content"].splitlines()[0].strip()
+        rejected_line = rejected_line.replace("Self: ", "Rejected: ")
+        if not re.match(r"^Rejected:\s+(\((.*)\)\s+)?\"(.+)\"$", rejected_line):
+            # Try to fix it
+            if not rejected_line.startswith('"'):
+                rejected_line = '"' + rejected_line
+            if not rejected_line.endswith('"'):
+                rejected_line = rejected_line + '"'
+            if not rejected_line.startswith("Rejected: "):
+                rejected_line = "Rejected: " + rejected_line
+        r = Rejected.parse(rejected_line)
+        assert r is not None
+        print(f"-->{rejected_line}<--")
+        moment.occurrences.append(r)
+
+        # Then add actual response
         response_message = response["choices"][0]["message"]
         line = response_message["content"].splitlines()[0].strip()
         print(f"-->{line}<--")

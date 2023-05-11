@@ -14,6 +14,7 @@ from moments.moment import (
     Instructions,
     Example,
     Begin,
+    Rejected,
 )
 
 logging.basicConfig(
@@ -73,6 +74,25 @@ class ChatOpenAiAgent(Agent):
                 line = line + '"'
             if not line.startswith("Self: "):
                 line = "Self: " + line
+
+        # Get the rejected
+        response = chat(langchain_messages)
+        rejected_line = response.content.splitlines()[0].strip()
+        rejected_line = rejected_line.replace("Self: ", "Rejected: ")
+        if not re.match(r"^Self:\s+(\((.*)\)\s+)?\"(.+)\"$", rejected_line):
+            # Try to fix it
+            if not rejected_line.startswith('"'):
+                rejected_line = '"' + rejected_line
+            if not rejected_line.endswith('"'):
+                rejected_line = rejected_line + '"'
+            if not rejected_line.startswith("Rejected: "):
+                rejected_line = "Rejected: " + rejected_line
+
+        # First, add the rejected
+        print(f"-->{rejected_line}<--")
+        moment.occurrences.append(Rejected.parse(rejected_line))
+
+        # Then the response
         moment.occurrences.append(Self.parse(line))
 
     def after(self: "ChatOpenAiAgent", moment: Moment):

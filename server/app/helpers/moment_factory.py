@@ -18,7 +18,7 @@ ALLOW_OVERRIDE = False
 DEFAULT_AGENT_INFO = {
     "kind": "ChatGptAgent",
     "id": "pf",
-    "variant": "baseline",
+    "variant": "usingchatgpt",
 }
 
 
@@ -103,9 +103,10 @@ def get_next_snapshot(
 
     stash_snapshot(snapshot=snapshot, agent=agent)
 
-    snapshot = agent.next(snapshot)
-    stash_snapshot(snapshot=snapshot, agent=agent)
-    return snapshot.to_dict()
+    snapshot_response = agent.next(snapshot)
+
+    stash_snapshot(snapshot=snapshot_response, agent=agent)
+    return snapshot_response.to_dict()
 
 
 @cache
