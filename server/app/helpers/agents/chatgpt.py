@@ -3,6 +3,7 @@ import sys
 import logging
 import openai
 import pytz
+from time import sleep
 from datetime import datetime
 from moments.agent import Agent
 from moments.moment import (
@@ -68,16 +69,30 @@ class ChatGptAgent(Agent):
 
         # Complete with openai
         print(f"{messages}")
-        response = openai.ChatCompletion.create(model=OPENAI_MODEL, messages=messages)
+        try:
+            response = openai.ChatCompletion.create(
+                model=OPENAI_MODEL, messages=messages
+            )
+        except openai.error.RateLimitError:
+            sleep(1)
+            response = openai.ChatCompletion.create(
+                model=OPENAI_MODEL, messages=messages
+            )
 
         # Add the second option as a rejected
         print(len(response["choices"]))
         if len(response["choices"]) > 1:
             rejected_response_message = response["choices"][1]["message"]
         else:
-            rejected_response = openai.ChatCompletion.create(
-                model=OPENAI_MODEL, messages=messages
-            )
+            try:
+                rejected_response = openai.ChatCompletion.create(
+                    model=OPENAI_MODEL, messages=messages
+                )
+            except openai.error.RateLimitError:
+                sleep(1)
+                response = openai.ChatCompletion.create(
+                    model=OPENAI_MODEL, messages=messages
+                )
             rejected_response_message = rejected_response["choices"][0]["message"]
 
         rejected_line = rejected_response_message["content"].splitlines()[0].strip()

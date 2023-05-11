@@ -18,7 +18,7 @@ ALLOW_OVERRIDE = False
 DEFAULT_AGENT_INFO = {
     "kind": "ChatGptAgent",
     "id": "pf",
-    "variant": "baseline",
+    "variant": "usingchatgpt",
 }
 
 

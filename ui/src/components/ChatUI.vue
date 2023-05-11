@@ -80,22 +80,28 @@ export default defineComponent({
       this.complete()
       this.userMessage = ""
     },
-    refetch(snapshot_id) {
+    refetch(says) {
       this.isLoading = true
       this.error = ""
-      do {
+      var popped = null;
+      while (true) {
         popped = this.history.pop()
+        if (says == popped.moment.occurrences[popped.moment.occurrences.length - 1].content.says) {
+          break;
+        }
       }
-      while (popped.id != snapshot_id);
       this.snapshot = JSON.parse(JSON.stringify(this.history[this.history.length - 1]));
-      this.snapshot.occurrences.push({ kind: "Rejected", content: popped.moment.occurrences[popped.moment.occurrences.length - 1].content })
+      this.snapshot.moment.occurrences.push({ kind: "Rejected", content: popped.moment.occurrences[popped.moment.occurrences.length - 1].content })
       this.complete()
     },
-    rollback(snapshot_id) {
-      do {
+    rollback(says) {
+      var popped = null;
+      while (true) {
         popped = this.history.pop()
+        if (says == popped.moment.occurrences[popped.moment.occurrences.length - 1].content.says) {
+          break;
+        }
       }
-      while (popped.id != snapshot_id);
       this.userMessage = popped.moment.occurrences[popped.moment.occurrences.length - 1].content.says
       this.snapshot = this.history[this.history.length - 1];
     },
@@ -154,11 +160,11 @@ export default defineComponent({
                     <div class="block text-left">{{ interaction.content.says }}</div>
                   </div>
                   <ArrowPathIcon v-if="!isLoading" class="w-4 h-4 text-gray-400 hover:text-gray-700 ml-2 hand"
-                    @click="refetch(snapshot.id)" />
+                    @click="refetch(interaction.content.says)" />
                 </div>
                 <div v-else-if="interaction.kind == 'Participant'" class="flex justify-end items-center">
                   <PencilIcon v-if="!isLoading" class="w-4 h-4 text-gray-400 hover:text-gray-700 mr-2 hand"
-                    @click="rollback(snapshot.id)" />
+                    @click="rollback(interaction.content.says)" />
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded">
                     <div class="block text-right">{{ interaction.content.says }}</div>
                   </div>
@@ -188,7 +194,7 @@ export default defineComponent({
                 </div>
                 <div v-else-if="mode == 'dev' && interaction.kind == 'Rejected'" class="flex justify-end items-center">
                   <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-400 border border-gray-300 rounded">
-                    <div class="block text-right code">Rejected: {{ interaction.content }}.</div>
+                    <div class="block text-right code">Rejected: {{ interaction.content.says }}.</div>
                   </div>
                 </div>
               </li>
