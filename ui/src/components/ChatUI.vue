@@ -188,6 +188,11 @@ export default defineComponent({
                     <div class="block text-right code">Begin.</div>
                   </div>
                 </div>
+                <div v-else-if="mode == 'dev' && interaction.kind == 'Rejected'" class="flex justify-end items-center">
+                  <div class="relative max-w-xl px-4 py-2 text-gray-700 bg-gray-400 border border-gray-300 rounded">
+                    <div class="block text-right code">Rejected: {{ interaction.content }}.</div>
+                  </div>
+                </div>
               </li>
               <li v-if="isLoading">
                 <div class="flex justify-start items-center">

@@ -23,12 +23,17 @@ def stash_snapshot(snapshot: Snapshot, agent: Agent):
         "name": agent.name,
         "config": deepcopy(agent.config.__dict__),
     }
-    with httpx.Client(base_url=LOGGER_URL) as client:
-        print(f"{LOGGER_URL}/v1/snapshots/{snapshot_id}")
-        response = client.post(f"/v1/snapshots/{snapshot_id}", json=snapshot_dict)
-        if response.status_code >= 400:
-            LOG.error(
-                "Unable to log moment: %s / snapshot: %s",
-                snapshot_dict["moment"]["id"],
-                snapshot_id,
-            )
+    try:
+        with httpx.Client(base_url=LOGGER_URL) as client:
+            print(f"{LOGGER_URL}/v1/snapshots/{snapshot_id}")
+            response = client.post(f"/v1/snapshots/{snapshot_id}", json=snapshot_dict)
+            if response.status_code >= 400:
+                LOG.error(
+                    "Unable to log moment: %s / snapshot: %s",
+                    snapshot_dict["moment"]["id"],
+                    snapshot_id,
+                )
+    except httpx.ConnectError as ce:
+        LOG.error("Error loggiing - %s", str(ce))
+    except Exception as ex:  # pylint: disable=broad-exception-caught
+        LOG.error("Error loggiing - %s", str(ex))
