@@ -1,0 +1,32 @@
+# Use for running a single service for local dev
+version: "3.9"  
+
+services:
+  base: &base
+    build: 
+      context: .
+      args:
+        HF_MODEL: ${HF_MODEL}
+
+  test: 
+    <<: *base
+    command: "test"
+
+  run:
+    <<: *base
+    container_name: text-completion 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+    user: user
+    command: "serve"
+    ports:
+      - 8080:8080
+    networks:
+      - llm-tools
+
+networks:
+  llm-tools: 
+    external: true

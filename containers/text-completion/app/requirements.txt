@@ -1,0 +1,16 @@
+# Falcon related
+jsonschema==4.17.3
+falcon==3.1.1
+uvicorn[standard]==0.20.0 # ASGI
+gevent==22.10.2 # WSGI
+gunicorn==20.1.0
+
+# Dev related
+pytest==7.2.1
+pylint==2.16.1
+mypy==1.0.0
+ 
+# Model related
+pandas
+xformers
+transformers
