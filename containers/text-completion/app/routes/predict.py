@@ -6,9 +6,9 @@ from helpers.text_completion import Generator
 REQUEST_SCHEMA = {
     "type": "object",
     "properties": {
-        "text": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "prompt": {"type": "string", "minLength": 1, "maxLength": 1000},
     },
-    "required": ["text"],
+    "required": ["prompt"],
 }
 
 

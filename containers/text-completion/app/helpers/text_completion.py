@@ -1,8 +1,10 @@
+import logging
 import os
 import sys
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline, Pipeline
 from time import perf_counter
-import logging
+
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, Pipeline, pipeline
 
 # Set up logger
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -29,13 +31,15 @@ class Generator:
             # we'll download a 1GB model).
             # Loading still takes time, though. So, we do that here.
             # Note: You can use a GPU here if needed.
+            device = "cuda:0" if torch.cuda.is_available() else "cpu"
             model = AutoModelForCausalLM.from_pretrained(HF_MODEL)
             # this line needed for now, probably a config issue.
             tokenizer = AutoTokenizer.from_pretrained(HF_MODEL)
             t0 = perf_counter()
             cls.generator = pipeline(
-                "text-generation", model=model, tokenizer=tokenizer
+                "text-generation", model=model, tokenizer=tokenizer, device=device
             )
+
             elapsed = 1000 * (perf_counter() - t0)
             log.info("Model warm-up time: %d ms.", elapsed)
 
