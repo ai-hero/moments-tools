@@ -21,6 +21,15 @@ class TextCompletionAgent(Agent):
     def do(self: "TextCompletionAgent", moment: Moment):
         # Add final "Self:" for agent to speak.
         prompt = str(moment) + "Self: "
+        print(f"-->{prompt}<--")
+        if prompt == "Self: ":
+            moment.occurrences.append(
+                Self.parse(
+                    'Self: "Hi, How can I help? You can ask me any questions about personal finance."'
+                )
+            )
+            return
+
         # prompt = prompt.replace("Self: ", "Assistant: ")
         # prompt = re.sub(r"User\s\(\d+\)\s:", "Human:", prompt)
 

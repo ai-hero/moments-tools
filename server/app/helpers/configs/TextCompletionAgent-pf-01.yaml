@@ -1,0 +1,7 @@
+---
+mdl: 0.2.2
+kind: TextCompletionAgent
+id: pf
+variant: "01"
+init: ""
+...
