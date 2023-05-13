@@ -33,9 +33,11 @@ RUN groupadd -r user && useradd -rm -d /home/user -s /bin/bash -g user -u 1000 u
 COPY root/* .
 COPY home/* /home/user/
 COPY workspace /home/user/workspace
+RUN chown -R user /home/user
 
 # Start SSH
 RUN service ssh start
 CMD ["/bin/bash","start_sshd.sh"]
+
 EXPOSE 22
 
