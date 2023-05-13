@@ -34,12 +34,7 @@ def generate_data(
     ) as f:
         agent_config_dict = yaml.safe_load(f)
 
-    agent_config = AgentConfig(
-        kind=agent_config_dict["kind"],
-        id=agent_config_dict["id"],
-        variant=agent_config_dict["variant"],
-        init=agent_config_dict["init"],
-    )
+    agent_config = AgentConfig(**agent_config_dict)
     DataFactory.generate_data(data_generator, agent_config)
 
 

@@ -1,3 +1,3 @@
-# Log Server
+# Data Generator
 
-Logs all the chats and provides observability on use current use.
+Generate MDL data from common data sources for fine tuning the model.

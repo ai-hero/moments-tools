@@ -19,6 +19,8 @@ Self: Alright John, your order should be up shortly.
 Read more about it [here](https://github.com/ai-hero/moments)
 
 ## Releases
+### v0.2.5 - Get end to end fine tuning working with model.  
+
 ### v0.2.4 - Generate data wellknown sources (e.g. Cornell reddit scrape)
 
 ### v0.2.3 - Introducing Moments and Moments Definition Language (MDL)

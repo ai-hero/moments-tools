@@ -20,5 +20,5 @@ langchain==0.0.147
 cohere==4.2.0
 
 # Moments
-git+https://github.com/ai-hero/moments.git@44c5503
+git+https://github.com/ai-hero/moments.git@fc1d963
 types-pytz

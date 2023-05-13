@@ -2,6 +2,7 @@ import os
 import csv
 import logging
 import sys
+import tarfile
 from abc import ABC, abstractmethod
 from tempfile import NamedTemporaryFile
 from typing import Generator
@@ -31,7 +32,7 @@ class DataGenerator(ABC):
 class DataFactory:
     @staticmethod
     def generate_data(data_generator: DataGenerator, agent_config: AgentConfig):
-        print(agent_config)
+        init_moment = str(Moment.parse(agent_config.init))
 
         with NamedTemporaryFile(suffix=".csv") as ntf:
             LOG.info("Building training dataset file.")
@@ -49,12 +50,19 @@ class DataFactory:
                 for moment in data_generator.build_data():
                     if count % 1000 == 0:
                         LOG.info("%s conversations generated", count)
-                    writer.writerow({"conversation": str(moment)})
+                    conversation = f"{init_moment}\n{str(moment)}<|ENDOFTEXT|>"
+                    writer.writerow({"conversation": conversation})
                     count += 1
 
-            LOG.info("Uploading training dataset file.")
-            dataset_file = os.path.join(
-                "generated-datasets",
-                f"from-{data_generator.dataset_name}.csv",
-            )
-            upload(ntf.name, dataset_file)
+            LOG.info("Compressing training dataset file.")
+            with NamedTemporaryFile(suffix=".tar.gz") as ntfc:
+                tar = tarfile.open(ntfc.name, "w:gz")
+                tar.add(ntf.name)
+                tar.close()
+
+                LOG.info("Uploading training dataset file.")
+                dataset_file = os.path.join(
+                    "generated-datasets",
+                    f"from-{data_generator.dataset_name}.csv.tar.gz",
+                )
+                upload(ntfc.name, dataset_file)
