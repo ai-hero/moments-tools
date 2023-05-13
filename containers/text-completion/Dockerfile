@@ -1,5 +1,5 @@
-# from pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel as base
-FROM pytorch/pytorch:latest 
+from pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel as base
+# FROM pytorch/pytorch:latest 
 
 RUN apt-get -y update && apt-get install -y --no-install-recommends build-essential  \
     wget nginx ca-certificates \
