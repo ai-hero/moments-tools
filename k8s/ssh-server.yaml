@@ -15,8 +15,8 @@ spec:
         app: ssh-server
     spec:
       containers:
-      - image: registry.gitlab.com/shri_javadekar/scratch/llmhackathon-build@sha256:e335e3fffd0705f2b89c7a93d9f06d694ed2007d82eb36949f80c3f9dd98cd99
-        imagePullPolicy: IfNotPresent
+      - image: rparundekar/devex-pytorch2:latest
+        imagePullPolicy: Always
         name: ssh-server
         resources:
           limits:

@@ -6,10 +6,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -yq --no-install-recommends \
         build-essential \
-        git \
-        curl \
+        git curl \
         ca-certificates \
-        sudo \
         locales \
         openssh-server \
         vim tzdata\
@@ -18,6 +16,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     # Make the "en_US.UTF-8" locale
     localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+
+RUN . /etc/os-release && \ 
+    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" | tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list && \
+    curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key | apt-key add - && \
+    apt-get -y update && apt-get -y install podman
 
 # Locale and Timezone
 ENV LANG=en_US.UTF-8 TZ=America/Los_Angeles
@@ -30,9 +33,11 @@ RUN groupadd -r user && useradd -rm -d /home/user -s /bin/bash -g user -u 1000 u
 COPY root/* .
 COPY home/* /home/user/
 COPY workspace /home/user/workspace
+RUN chown -R user /home/user
 
 # Start SSH
 RUN service ssh start
 CMD ["/bin/bash","start_sshd.sh"]
+
 EXPOSE 22
 
