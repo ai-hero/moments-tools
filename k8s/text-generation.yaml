@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: text-generation
+  labels:
+    app: text-generation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: text-generation
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: text-generation
+    spec:
+      containers:
+        - name: text-generation
+          image: rparundekar/llmhackathon-text-generation:latest
+          imagePullPolicy: Always
+          command:
+          - "serve"
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "128M"
+              cpu: "125m"
+            limits:
+              nvidia.com/gpu: 1
+              memory: "256M"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health_check
+              port: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: text-generation
+spec:
+  selector:
+    app: text-generation
+  ports:
+    - protocol: TCP
+      port: 8080
