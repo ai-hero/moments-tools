@@ -21,8 +21,5 @@ app.add_error_handler(Exception, custom_handle_uncaught_exception)
 
 # The routes
 app.add_route("/", HealthCheck())
+app.add_route("/health_check", HealthCheck())
 app.add_route("/predict", Predict())
-
-# Alternative routes (e.g. for Sagemaker)
-app.add_route("/ping", HealthCheck())
-app.add_route("/invocations", Predict())
