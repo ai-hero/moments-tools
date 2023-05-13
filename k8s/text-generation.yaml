@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: text-generation
-          image: rparundekar/llmhackathon-text-generation:latest
+          image: rparundekar/text-generation:latest
           imagePullPolicy: Always
           command:
           - "serve"
