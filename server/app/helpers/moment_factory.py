@@ -16,9 +16,9 @@ LOG = logging.getLogger(__name__)
 ALLOW_OVERRIDE = False
 
 DEFAULT_AGENT_INFO = {
-    "kind": "ChatGptAgent",
+    "kind": "TextCompletion",
     "id": "pf",
-    "variant": "usingchatgpt",
+    "variant": "01",
 }
 
 
@@ -65,6 +65,10 @@ def get_agent(agent_instance_id: str, agent_config_override: dict) -> Agent:
             from helpers.agents.llmopenai import LlmOpenAiAgent
 
             AgentFactory.register(LlmOpenAiAgent)
+        case "TextCompletion":
+            from helpers.agents.text_completion import TextCompletionAgent
+
+            AgentFactory.register(TextCompletionAgent)
 
     # Fetch Agent Instance
     return AgentFactory.create(agent_instance_id, agent_config)

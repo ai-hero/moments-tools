@@ -27,13 +27,19 @@ class TextCompletionAgent(Agent):
         # Complete with fine tunded model
         try:
             with httpx.Client(base_url=MODEL_URL) as client:
-                response = client.post(f"{MODEL_URL}/predict", json={"prompt": prompt})
+                request = {"prompt": prompt}
+                response = client.post(f"{MODEL_URL}/predict", json=request)
                 if response.status_code >= 400:
                     LOG.error("Unable to get a prediction")
                     raise HTTPError(501, "It's not you it's me.")
+                print(request, response.json())
         except httpx.ConnectError as ce:
             raise HTTPError(502, "It's not you it's me.")
-        line = response.split("\n")[0].strip()
+        line = (
+            response.json()["completion"][0]["generated_text"][len(prompt) :]
+            .split("\n")[0]
+            .strip()
+        )
         print(f"-->{line}<--")
         if not re.match(r"^Self:\s+(\((.*)\)\s+)?\"(.+)\"$", line):
             # Try to fix it
@@ -47,13 +53,18 @@ class TextCompletionAgent(Agent):
         # Get the rejected
         try:
             with httpx.Client(base_url=MODEL_URL) as client:
-                response = client.post(f"{MODEL_URL}/predict", json={"prompt": prompt})
+                response = client.post(f"{MODEL_URL}/predict", json=request)
                 if response.status_code >= 400:
                     LOG.error("Unable to get a prediction")
                     raise HTTPError(501, "It's not you it's me.")
+                print(request, response.json())
         except httpx.ConnectError as ce:
             raise HTTPError(502, "It's not you it's me.")
-        rejected_line = response.split("\n")[0].strip()
+        rejected_line = (
+            response.json()["completion"][0]["generated_text"][len(prompt) :]
+            .split("\n")[0]
+            .strip()
+        )
         rejected_line = rejected_line.replace("Self: ", "Rejected: ")
         if not re.match(r"^Self:\s+(\((.*)\)\s+)?\"(.+)\"$", rejected_line):
             # Try to fix it
