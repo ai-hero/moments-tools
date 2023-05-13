@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: text-generation
+  name: text-completion
   labels:
-    app: text-generation
+    app: text-completion
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: text-generation
+      app: text-completion
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -17,11 +17,11 @@ spec:
   template:
     metadata:
       labels:
-        app: text-generation
+        app: text-completion
     spec:
       containers:
-        - name: text-generation
-          image: rparundekar/text-generation:latest
+        - name: text-completion
+          image: rparundekar/text-completion:latest
           imagePullPolicy: Always
           command:
           - "serve"
@@ -38,10 +38,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: text-generation
+  name: text-completion
 spec:
   selector:
-    app: text-generation
+    app: text-completion
   ports:
     - protocol: TCP
       port: 8080
