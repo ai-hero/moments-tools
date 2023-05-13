@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssh-server
+  labels:
+    app: ssh-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ssh-server
+  template:
+    metadata:
+      labels:
+        app: ssh-server
+    spec:
+      containers:
+      - image: registry.gitlab.com/shri_javadekar/scratch/llmhackathon-build@sha256:e335e3fffd0705f2b89c7a93d9f06d694ed2007d82eb36949f80c3f9dd98cd99
+        imagePullPolicy: IfNotPresent
+        name: ssh-server
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+        ports:
+        - containerPort: 22
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: model
+  name: ssh-server
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 22
+    protocol: TCP
+    targetPort: 22
+  selector:
+    app: ssh-server
+  sessionAffinity: None
+  type: ClusterIP
