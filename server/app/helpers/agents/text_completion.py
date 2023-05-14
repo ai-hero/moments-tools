@@ -37,7 +37,7 @@ class TextCompletionAgent(Agent):
         try:
             with httpx.Client(base_url=MODEL_URL) as client:
                 request = {"prompt": prompt}
-                response = client.post(f"{MODEL_URL}/predict", json=request)
+                response = client.post(f"{MODEL_URL}/predict", json=request, timeout=20)
                 if response.status_code >= 400:
                     LOG.error("Unable to get a prediction")
                     raise HTTPError(501, "It's not you it's me.")

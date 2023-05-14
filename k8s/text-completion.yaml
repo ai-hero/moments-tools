@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: text-completion
-          image: rparundekar/text-completion:latest
+          image: rparundekar/text-completion:v2
           imagePullPolicy: Always
           command:
           - "serve"
