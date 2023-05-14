@@ -1,1 +1,1 @@
-export PATH=$PATH:/opt/conda/bin/ # Conda
+export PATH=$PATH:/opt/conda/bin/:/home/user/.local/bin # Conda

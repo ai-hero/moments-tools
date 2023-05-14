@@ -1,12 +1,12 @@
 # Using a container with pytorch.
 First, run the server with port forwarding.
 ```
-docker run -p 22:22 -it --rm rparundekar/devex-pytorch2:latest 
+kubectl port-forward svc/devbox 8022:22
 ```
 
 Then ssh into it with user `user` and password `password`.
 ```
-ssh user@localhost
+ssh user@localhost -p 8022
 ```
 
 OR SSH into it with VSCode.
@@ -16,3 +16,5 @@ OR SSH into it with VSCode.
 docker build -t rparundekar/devex-pytorch2 -f Dockerfile.pytorch .
 docker push rparundekar/devex-pytorch2:latest
 ```
+
+

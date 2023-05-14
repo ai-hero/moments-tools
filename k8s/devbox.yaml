@@ -1,36 +1,42 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ssh-server
+  name: devbox
   labels:
-    app: ssh-server
+    app: devbox
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ssh-server
+      app: devbox
   template:
     metadata:
       labels:
-        app: ssh-server
+        app: devbox
     spec:
       containers:
       - image: rparundekar/devex-pytorch2:latest
         imagePullPolicy: Always
-        name: ssh-server
+        name: devbox
         resources:
           limits:
             nvidia.com/gpu: 1
         ports:
         - containerPort: 22
           protocol: TCP
+        env:
+          - name: HF_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: api-credentials
+                key: HF_TOKEN
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: model
-  name: ssh-server
+    app: devbox
+  name: devbox
 spec:
   internalTrafficPolicy: Cluster
   ipFamilies:
@@ -41,6 +47,6 @@ spec:
     protocol: TCP
     targetPort: 22
   selector:
-    app: ssh-server
+    app: devbox
   sessionAffinity: None
   type: ClusterIP
